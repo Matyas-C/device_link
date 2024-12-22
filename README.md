@@ -1,1 +1,1 @@
-Program na propojení PC a telefonu.
+Multiplatformní aplikace na propojení zařízení.
