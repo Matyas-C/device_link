@@ -18,7 +18,10 @@ class NavRail extends StatelessWidget {
       backgroundColor: Colors.black45,
       leading: const Padding(
         padding: EdgeInsets.symmetric(horizontal: 8, vertical: 50),
-        child: FlutterLogo(size: 40),
+        child: Image(
+            image: AssetImage('assets/icons/logo-nobg-white.png'),
+            width: 80,
+        ),
       ),
       onDestinationSelected: onDestinationSelected,
       labelType: NavigationRailLabelType.all,
