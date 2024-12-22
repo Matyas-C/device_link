@@ -1,1 +1,1 @@
-Multiplatformní aplikace na propojení zařízení.
+Multiplatformní aplikace na propojení zařízení přes lokální síť.
