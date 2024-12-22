@@ -15,6 +15,7 @@ class UdpDiscovery {
 
   final _deviceBox = Hive.box('device');
   late final String uuid;
+  late final String deviceName;
   late final String? broadcastAddress;
   late final RawDatagramSocket socket;
 
@@ -22,6 +23,7 @@ class UdpDiscovery {
 
   Future<void> initialize() async {
     uuid = _deviceBox.get('uuid');
+    deviceName = _deviceBox.get('name');
     broadcastAddress = await NetworkInfo().getWifiBroadcast();
     socket = await RawDatagramSocket.bind(InternetAddress.anyIPv4, 8081);
     startListener(socket);
@@ -44,7 +46,7 @@ class UdpDiscovery {
       'uuid': uuid,
       'version': '1.0',
       'deviceType': determineDeviceType(),
-      'name': 'Jméno Zařízení',
+      'name': deviceName,
     };
 
     socket.send(utf8.encode(json.encode(connectionRequestMessage)), InternetAddress(ip), 8081);
@@ -67,7 +69,7 @@ class UdpDiscovery {
                 'uuid': uuid,
                 'version': '1.0',
                 'deviceType': determineDeviceType(),
-                'name': 'Jméno Zařízení',
+                'name': deviceName,
                 'ip': await NetworkInfo().getWifiIP(),
               };
               String jsonResponse = json.encode(response);
