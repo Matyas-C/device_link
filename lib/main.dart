@@ -5,8 +5,7 @@ import 'package:hive_ce/hive.dart';
 import 'ui/base_screen.dart';
 import 'util/window_util.dart';
 import 'database.dart';
-import 'udp_broadcast.dart';
-import 'udp_server.dart';
+import 'udp_discovery.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -15,17 +14,14 @@ void main() async {
   final deviceBox = DeviceBox();
   deviceBox.initData();
 
-  final udpClient = UdpClient();
-  final udpServer = UdpServer();
+  final udpDiscovery = UdpDiscovery();
 
   if (Platform.isWindows || Platform.isLinux || Platform.isMacOS) {
     await setMinSize(400, 500);
   }
+  await udpDiscovery.initialize();
 
-  await udpServer.startUdpServer();
-  await udpClient.initialize();
-
-  Timer.periodic(const Duration(seconds: 1), (Timer t) => udpClient.sendUdpDiscoveryBroadcast());
+  Timer.periodic(const Duration(seconds: 1), (Timer t) => udpDiscovery.sendDiscoveryBroadcast());
 
   runApp(const PhoneConnect());
 }
@@ -36,7 +32,7 @@ class PhoneConnect extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
-      title: 'PhoneConnect',
+      title: 'DeviceLink',
       theme: ThemeData.dark().copyWith(
         primaryColor: Colors.blue,
         scaffoldBackgroundColor: Colors.grey[900],

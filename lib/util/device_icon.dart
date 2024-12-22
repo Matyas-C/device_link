@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 
-IconData deviceIcon(String deviceType) {
+IconData getDeviceIcon(String deviceType) {
   if (deviceType.toLowerCase() == 'phone') {
     return Icons.phone_android;
   } else if (deviceType.toLowerCase() == 'computer') {

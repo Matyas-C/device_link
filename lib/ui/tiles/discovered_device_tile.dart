@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:phone_connect/util/device_icon.dart';
+import 'package:device_link/util/device_icon.dart';
 
 class DeviceTile extends StatelessWidget {
   final String deviceName;
@@ -26,7 +26,7 @@ class DeviceTile extends StatelessWidget {
       ),
       child: Row(
         children: [
-          Icon(deviceIcon(deviceType), color: Colors.white, size: 40), // Larger icon
+          Icon(getDeviceIcon(deviceType), color: Colors.white, size: 40), // Larger icon
           const SizedBox(width: 10), // Space between icon and text
           Column(
             crossAxisAlignment: CrossAxisAlignment.start,

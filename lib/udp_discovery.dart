@@ -1,8 +1,8 @@
 import 'dart:convert';
 import 'dart:io';
 import 'package:network_info_plus/network_info_plus.dart';
-import 'package:phone_connect/discovered_devices_list.dart';
-import 'package:phone_connect/util/device_type.dart';
+import 'package:device_link/discovered_devices_list.dart';
+import 'package:device_link/util/device_type.dart';
 import 'package:hive_ce_flutter/hive_flutter.dart';
 import 'package:hive_ce/hive.dart';
 import 'other_device.dart';
@@ -35,7 +35,7 @@ class UdpDiscovery {
     };
 
     socket.broadcastEnabled = true;
-    socket.send(utf8.encode(json.encode(discoveryMessage)), InternetAddress(broadcastAddress!), 8081);
+    socket.send(utf8.encode(json.encode(discoveryMessage)), InternetAddress(broadcastAddress!), 8081); //hazi error kdyz neni internet, pridat nejakej null check
   }
 
   Future<void> sendConnectionRequest(String ip) async {
@@ -44,7 +44,7 @@ class UdpDiscovery {
       'uuid': uuid,
       'version': '1.0',
       'deviceType': determineDeviceType(),
-      'name': 'Device Name',
+      'name': 'Jméno Zařízení',
     };
 
     socket.send(utf8.encode(json.encode(connectionRequestMessage)), InternetAddress(ip), 8081);
@@ -67,7 +67,7 @@ class UdpDiscovery {
                 'uuid': uuid,
                 'version': '1.0',
                 'deviceType': determineDeviceType(),
-                'name': 'Device Name',
+                'name': 'Jméno Zařízení',
                 'ip': await NetworkInfo().getWifiIP(),
               };
               String jsonResponse = json.encode(response);

@@ -1,4 +1,4 @@
-# phone_connect
+# device_link
 
 Program na propojení PC a telefonu na základě WebRTC
 

@@ -1,12 +1,10 @@
 import 'package:flutter/material.dart';
 import 'server_config.dart';
 import 'dart:async';
-import '../udp_server.dart';
-import '../udp_broadcast.dart';
+import '../udp_discovery.dart';
 
 final serverConfig = ServerConfig();
-final pcUdpServer = UdpServer();
-final phoneUdpClient = UdpClient();
+final phoneUdpClient = UdpDiscovery();
 
 void main() {
   runApp(const MyApp());
@@ -15,7 +13,7 @@ void main() {
 
 Future<void> startUdpServer() async {
   //await serverConfig.initialize();
-  pcUdpServer.startUdpServer();
+  //pcUdpServer.startUdpServer();
 }
 
 class MyApp extends StatelessWidget {
@@ -49,7 +47,7 @@ class _MyHomePageState extends State<MyHomePage> {
       _isSearching = true;
     });
 
-    await phoneUdpClient.sendUdpDiscoveryBroadcast();
+    await phoneUdpClient.sendDiscoveryBroadcast();
 
     await Future.delayed(const Duration(milliseconds: 500)); // Wait for server response
     String? serverUrl = serverConfig.getServerUrl();

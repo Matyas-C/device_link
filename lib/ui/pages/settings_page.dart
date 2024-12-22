@@ -7,7 +7,7 @@ class SettingsPage extends StatelessWidget {
   Widget build(BuildContext context) {
     return Center(
       child: Text(
-        'Settings Screen',
+        'Nastavení',
         style: Theme.of(context).textTheme.headlineLarge,
       ),
     );
