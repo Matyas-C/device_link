@@ -34,3 +34,5 @@ flutter_launcher_icons:
   windows:
     generate: true
     image_path: "assets/icons/logo-bg-rounded.png"
+  android: true
+  image_path: "assets/icons/logo-bg-square.png"
