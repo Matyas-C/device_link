@@ -5,6 +5,7 @@ import '../tiles/discovered_device_tile.dart';
 import 'package:device_link/other_device.dart';
 import 'package:device_link/util/device_type.dart';
 import 'package:device_link/util/device_icon.dart';
+import 'package:device_link/ui/other/device_name_text_controller.dart';
 
 class DevicesPage extends StatefulWidget {
   const DevicesPage({super.key});
@@ -43,35 +44,21 @@ class _DevicesPageState extends State<DevicesPage> {
                 color: Colors.black38,
                 borderRadius: BorderRadius.circular(8),
               ),
-              child: Stack(
+              child: Row(
+                mainAxisAlignment: MainAxisAlignment.center,
                 children: [
-                  Positioned(
-                    child: Row(
-                      mainAxisAlignment: MainAxisAlignment.center,
-                      children: [
-                        Icon(
-                          getDeviceIcon(determineDeviceType()),
-                          size: 50,
-                        ),
-                        const SizedBox(width: 20),
-                        const Expanded(
-                          child: TextField(
-                            decoration: InputDecoration(
-                              border: UnderlineInputBorder(),
-                              hintText: "Název zařízení",
-                            ),
-                          ),
-                        ),
-                      ],
-                    ),
+                  Icon(
+                    getDeviceIcon(determineDeviceType()),
+                    size: 50,
                   ),
-                  Positioned(
-                    right: 0,
-                    child: IconButton(
-                      icon: const Icon(Icons.info_outline),
-                      hoverColor: null,
-                      onPressed: () {
-                      },
+                  const SizedBox(width: 20),
+                  Expanded(
+                    child: TextField(
+                      controller: DeviceNameTextController().textController,
+                      decoration: const InputDecoration(
+                        border: UnderlineInputBorder(),
+                        hintText: "Název zařízení",
+                      ),
                     ),
                   ),
                 ],

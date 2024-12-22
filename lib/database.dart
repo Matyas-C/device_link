@@ -14,5 +14,8 @@ class DeviceBox {
     if (!_deviceBox.containsKey('uuid')) {
       _deviceBox.put('uuid', const Uuid().v4().toString());
     }
+    if (!_deviceBox.containsKey('name')) {
+      _deviceBox.put('name', 'Zařízení');
+    }
   }
 }
