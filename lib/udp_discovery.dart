@@ -1,5 +1,6 @@
 import 'dart:convert';
 import 'dart:io';
+import 'package:flutter/material.dart';
 import 'package:network_info_plus/network_info_plus.dart';
 import 'package:device_link/discovered_devices_list.dart';
 import 'package:device_link/util/device_type.dart';
@@ -20,6 +21,7 @@ class UdpDiscovery {
   late final RawDatagramSocket socket;
 
   Function(OtherDevice) onDeviceDiscovered = (device) {};
+  late Future<bool> Function(String uuid, String name, String deviceType) onConnectionRequest;
 
   Future<void> initialize() async {
     uuid = _deviceBox.get('uuid');
@@ -95,11 +97,14 @@ class UdpDiscovery {
                 'wsAddress': 'ws://${await NetworkInfo().getWifiIP()}:8080',
               };
               String jsonResponse = json.encode(response);
-              socket.send(utf8.encode(jsonResponse), datagram.address, datagram.port);
+              bool wasAccepted = await onConnectionRequest(decodedMessage['uuid'], decodedMessage['name'], decodedMessage['deviceType']);
+              if (wasAccepted) {
+                socket.send(utf8.encode(jsonResponse), datagram.address, datagram.port);
+              }
               break;
 
             case MessageType.connectionResponse:
-              print('Connection accepted by peer: ${decodedMessage['accept']}');
+              print('Connection accepted by peer: ${decodedMessage['uuid']}');
               break;
 
             default:

@@ -4,6 +4,8 @@ import 'navigation/navigation_rail.dart';
 import 'pages/home_page.dart';
 import 'pages/devices_page.dart';
 import 'pages/settings_page.dart';
+import 'package:device_link/udp_discovery.dart';
+import 'dialog/response_dialog.dart';
 
 class BaseScreen extends StatefulWidget {
   const BaseScreen({super.key});
@@ -20,6 +22,24 @@ class _BaseScreenState extends State<BaseScreen> {
     const DevicesPage(),
     const SettingsPage(),
   ];
+
+  @override
+  void initState() {
+    super.initState();
+    UdpDiscovery().onConnectionRequest = (String uuid, String name, String deviceType) async {
+      bool isPositive = await showDialog(
+        context: context,
+        builder: (BuildContext context) {
+          return ResponseDialog(
+              uuid: uuid,
+              name: name,
+              deviceType: deviceType
+          );
+        },
+      );
+      return isPositive;
+    };
+  }
 
   @override
   Widget build(BuildContext context) {
