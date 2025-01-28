@@ -27,7 +27,7 @@ class _BaseScreenState extends State<BaseScreen> {
   void initState() {
     super.initState();
     UdpDiscovery().onConnectionRequest = (String uuid, String name, String deviceType) async {
-      bool isPositive = await showDialog(
+      bool? wasAccepted = await showDialog(
         context: context,
         builder: (BuildContext context) {
           return ResponseDialog(
@@ -37,7 +37,7 @@ class _BaseScreenState extends State<BaseScreen> {
           );
         },
       );
-      return isPositive;
+      return wasAccepted;
     };
   }
 

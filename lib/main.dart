@@ -1,7 +1,6 @@
 import 'dart:async';
 import 'dart:io';
 import 'package:flutter/material.dart';
-import 'package:hive_ce/hive.dart';
 import 'ui/base_screen.dart';
 import 'util/window_util.dart';
 import 'database.dart';

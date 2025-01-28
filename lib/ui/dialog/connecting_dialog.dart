@@ -1,11 +1,26 @@
+import 'package:device_link/udp_discovery.dart';
 import 'package:flutter/material.dart';
 
 class ConnectingDialog extends StatelessWidget {
-  const ConnectingDialog({super.key});
+  final String deviceIp;
+
+  const ConnectingDialog({
+    super.key,
+    required this.deviceIp
+  });
+
+  static final GlobalKey<NavigatorState> navigatorKey = GlobalKey<NavigatorState>();
+
+  static void closeDialog() {
+    if (navigatorKey.currentContext != null) {
+      Navigator.pop(navigatorKey.currentContext!);
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
     return Dialog.fullscreen(
+      key: navigatorKey,
       backgroundColor: Colors.blue[900],
       child: Center(
         child: Column(
@@ -19,13 +34,14 @@ class ConnectingDialog extends StatelessWidget {
             TextButton(
               onPressed: () {
                 Navigator.pop(context);
+                UdpDiscovery().sendCancelRequest(deviceIp);
               },
               child: const Text(
-                  "Zrušit",
-                  style: TextStyle(
-                      fontSize: 18,
-                      color: Colors.white
-                  ),
+                "Zrušit",
+                style: TextStyle(
+                    fontSize: 18,
+                    color: Colors.white
+                ),
               ),
             )
           ],

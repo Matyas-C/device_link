@@ -24,7 +24,7 @@ class DeviceTile extends StatelessWidget {
         showDialog(
             context: context,
             builder: (BuildContext context) {
-              return const ConnectingDialog();
+              return ConnectingDialog(deviceIp: deviceIp);
             }
         );
         UdpDiscovery().sendConnectionRequest(deviceIp);

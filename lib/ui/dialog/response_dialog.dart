@@ -1,15 +1,29 @@
 import 'package:flutter/material.dart';
 
 class ResponseDialog extends StatelessWidget {
-  final dynamic uuid;
-  final dynamic name;
-  final dynamic deviceType;
+  final String uuid;
+  final String name;
+  final String deviceType;
 
-  const ResponseDialog({super.key, required this.uuid, required this.name, required this.deviceType});
+  const ResponseDialog({
+    super.key,
+    required this.uuid,
+    required this.name,
+    required this.deviceType
+  });
+
+  static final GlobalKey<NavigatorState> navigatorKey = GlobalKey<NavigatorState>();
+
+  static void closeDialog() {
+    if (navigatorKey.currentContext != null) {
+      Navigator.pop(navigatorKey.currentContext!);
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
     return Dialog.fullscreen(
+      key: navigatorKey,
       backgroundColor: Colors.blue[900],
       child: Center(
         child: Column(

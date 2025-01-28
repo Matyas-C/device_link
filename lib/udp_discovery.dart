@@ -1,6 +1,7 @@
 import 'dart:convert';
 import 'dart:io';
-import 'package:flutter/material.dart';
+import 'package:device_link/ui/dialog/connecting_dialog.dart';
+import 'package:device_link/ui/dialog/response_dialog.dart';
 import 'package:network_info_plus/network_info_plus.dart';
 import 'package:device_link/discovered_devices_list.dart';
 import 'package:device_link/util/device_type.dart';
@@ -21,7 +22,7 @@ class UdpDiscovery {
   late final RawDatagramSocket socket;
 
   Function(OtherDevice) onDeviceDiscovered = (device) {};
-  late Future<bool> Function(String uuid, String name, String deviceType) onConnectionRequest;
+  late Future<bool?> Function(String uuid, String name, String deviceType) onConnectionRequest;
 
   Future<void> initialize() async {
     uuid = _deviceBox.get('uuid');
@@ -33,7 +34,7 @@ class UdpDiscovery {
 
   Future<void> sendDiscoveryBroadcast() async {
     final Map<String, dynamic> discoveryMessage = {
-      'type': MessageType.discover,
+      'type': MessageType.dlDiscover.name,
       'uuid': uuid,
       'version': '1.0',
     };
@@ -44,7 +45,7 @@ class UdpDiscovery {
 
   Future<void> sendConnectionRequest(String ip) async {
     final Map<String, dynamic> connectionRequestMessage = {
-      'type': MessageType.connectionRequest,
+      'type': MessageType.dlConnectionRequest.name,
       'uuid': uuid,
       'version': '1.0',
       'deviceType': determineDeviceType(),
@@ -53,6 +54,17 @@ class UdpDiscovery {
 
     socket.send(utf8.encode(json.encode(connectionRequestMessage)), InternetAddress(ip), 8081);
     print('Sent connection request: ${json.encode(connectionRequestMessage)}');
+  }
+
+  Future<void> sendCancelRequest(String ip) async {
+    final Map<String, dynamic> cancelRequestMessage = {
+      'type': MessageType.dlRequestCancel.name,
+      'uuid': uuid,
+      'version': '1.0',
+    };
+
+    socket.send(utf8.encode(json.encode(cancelRequestMessage)), InternetAddress(ip), 8081);
+    print('Sent cancel request: ${json.encode(cancelRequestMessage)}');
   }
 
   void startListener(RawDatagramSocket socket) {
@@ -64,10 +76,12 @@ class UdpDiscovery {
           Map<String, dynamic> decodedMessage = json.decode(message);
           if (decodedMessage['uuid'] == uuid) return;
 
-          switch (decodedMessage['type']) {
-            case MessageType.discover:
+          MessageType messageType = MessageType.values.byName(decodedMessage['type']);
+
+          switch (messageType) {
+            case MessageType.dlDiscover:
               final Map<String, dynamic> response = {
-                'type': MessageType.discoverResponse,
+                'type': MessageType.dlDiscoverResponse.name,
                 'uuid': uuid,
                 'version': '1.0',
                 'deviceType': determineDeviceType(),
@@ -78,7 +92,7 @@ class UdpDiscovery {
               socket.send(utf8.encode(jsonResponse), datagram.address, datagram.port);
               break;
 
-            case MessageType.discoverResponse:
+            case MessageType.dlDiscoverResponse:
               final OtherDevice device = OtherDevice(
                 uuid: decodedMessage['uuid'],
                 deviceType: decodedMessage['deviceType'],
@@ -89,22 +103,45 @@ class UdpDiscovery {
               onDeviceDiscovered(device);
               break;
 
-            case MessageType.connectionRequest:
+            case MessageType.dlConnectionRequest:
+              bool? wasAccepted = await onConnectionRequest(
+                  decodedMessage['uuid'],
+                  decodedMessage['name'],
+                  decodedMessage['deviceType']
+              );
+
               final Map<String, dynamic> response = {
-                'type': MessageType.connectionResponse,
                 'uuid': uuid,
                 'version': '1.0',
-                'wsAddress': 'ws://${await NetworkInfo().getWifiIP()}:8080',
               };
-              String jsonResponse = json.encode(response);
-              bool wasAccepted = await onConnectionRequest(decodedMessage['uuid'], decodedMessage['name'], decodedMessage['deviceType']);
-              if (wasAccepted) {
-                socket.send(utf8.encode(jsonResponse), datagram.address, datagram.port);
+
+              if (wasAccepted == null) {
+                break;
               }
+
+              if (wasAccepted) {
+                response['type'] = MessageType.dlConnectionAccept.name;
+                response['wsAddress'] = 'ws://${await NetworkInfo().getWifiIP()}:8080';
+              } else {
+                response['type'] = MessageType.dlConnectionRefuse.name;
+              }
+
+              String jsonResponse = json.encode(response);
+              socket.send(utf8.encode(jsonResponse), datagram.address, datagram.port);
               break;
 
-            case MessageType.connectionResponse:
+            case MessageType.dlConnectionAccept:
               print('Connection accepted by peer: ${decodedMessage['uuid']}');
+              break;
+
+            case MessageType.dlConnectionRefuse:
+              ConnectingDialog.closeDialog();
+              print('Connection refused by peer');
+              break;
+
+            case MessageType.dlRequestCancel:
+              ResponseDialog.closeDialog();
+              print('Connection request cancelled by peer');
               break;
 
             default:
