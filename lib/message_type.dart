@@ -6,3 +6,7 @@ enum MessageType {
   dlConnectionRefuse,
   dlRequestCancel,
 }
+
+enum SignalingMessageType {
+  clientConnected,
+}

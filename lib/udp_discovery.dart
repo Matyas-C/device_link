@@ -9,6 +9,8 @@ import 'package:hive_ce_flutter/hive_flutter.dart';
 import 'package:hive_ce/hive.dart';
 import 'other_device.dart';
 import 'message_type.dart';
+import 'signaling_server.dart';
+import 'signaling_client.dart';
 
 class UdpDiscovery {
   static final UdpDiscovery _instance = UdpDiscovery._internal();
@@ -20,9 +22,12 @@ class UdpDiscovery {
   late final String deviceName;
   late final String? broadcastAddress;
   late final RawDatagramSocket socket;
+  final SignalingServer _signalingServer = SignalingServer();
+  final SignalingClient _signalingClient = SignalingClient();
 
   Function(OtherDevice) onDeviceDiscovered = (device) {};
-  late Future<bool?> Function(String uuid, String name, String deviceType) onConnectionRequest;
+  late Future<bool?> Function(String uuid, String name, String deviceType)
+      onConnectionRequest;
 
   Future<void> initialize() async {
     uuid = _deviceBox.get('uuid');
@@ -40,7 +45,10 @@ class UdpDiscovery {
     };
 
     socket.broadcastEnabled = true;
-    socket.send(utf8.encode(json.encode(discoveryMessage)), InternetAddress(broadcastAddress!), 8081); //hazi error kdyz neni internet, pridat nejakej null check
+    socket.send(
+        utf8.encode(json.encode(discoveryMessage)),
+        InternetAddress(broadcastAddress!),
+        8081); //hazi error kdyz neni internet, pridat nejakej null check
   }
 
   Future<void> sendConnectionRequest(String ip) async {
@@ -52,7 +60,8 @@ class UdpDiscovery {
       'name': deviceName,
     };
 
-    socket.send(utf8.encode(json.encode(connectionRequestMessage)), InternetAddress(ip), 8081);
+    socket.send(utf8.encode(json.encode(connectionRequestMessage)),
+        InternetAddress(ip), 8081);
     print('Sent connection request: ${json.encode(connectionRequestMessage)}');
   }
 
@@ -63,11 +72,12 @@ class UdpDiscovery {
       'version': '1.0',
     };
 
-    socket.send(utf8.encode(json.encode(cancelRequestMessage)), InternetAddress(ip), 8081);
+    socket.send(utf8.encode(json.encode(cancelRequestMessage)),
+        InternetAddress(ip), 8081);
     print('Sent cancel request: ${json.encode(cancelRequestMessage)}');
   }
 
-  void startListener(RawDatagramSocket socket) {
+  Future<void> startListener(RawDatagramSocket socket) async {
     socket.listen((RawSocketEvent event) async {
       if (event == RawSocketEvent.read) {
         Datagram? datagram = socket.receive();
@@ -76,7 +86,8 @@ class UdpDiscovery {
           Map<String, dynamic> decodedMessage = json.decode(message);
           if (decodedMessage['uuid'] == uuid) return;
 
-          MessageType messageType = MessageType.values.byName(decodedMessage['type']);
+          MessageType messageType =
+              MessageType.values.byName(decodedMessage['type']);
 
           switch (messageType) {
             case MessageType.dlDiscover:
@@ -89,7 +100,8 @@ class UdpDiscovery {
                 'ip': await NetworkInfo().getWifiIP(),
               };
               String jsonResponse = json.encode(response);
-              socket.send(utf8.encode(jsonResponse), datagram.address, datagram.port);
+              socket.send(
+                  utf8.encode(jsonResponse), datagram.address, datagram.port);
               break;
 
             case MessageType.dlDiscoverResponse:
@@ -99,7 +111,8 @@ class UdpDiscovery {
                 name: decodedMessage['name'],
                 ip: decodedMessage['ip'],
               );
-              if (DiscoveredDevices.list.any((d) => d.uuid == device.uuid)) return;
+              if (DiscoveredDevices.list.any((d) => d.uuid == device.uuid))
+                return;
               onDeviceDiscovered(device);
               break;
 
@@ -107,8 +120,7 @@ class UdpDiscovery {
               bool? wasAccepted = await onConnectionRequest(
                   decodedMessage['uuid'],
                   decodedMessage['name'],
-                  decodedMessage['deviceType']
-              );
+                  decodedMessage['deviceType']);
 
               final Map<String, dynamic> response = {
                 'uuid': uuid,
@@ -120,18 +132,25 @@ class UdpDiscovery {
               }
 
               if (wasAccepted) {
+                _signalingServer.start();
+                await _signalingServer.waitForServerReady();
+                await _signalingClient.connect('ws://${await NetworkInfo().getWifiIP()}:8080');
                 response['type'] = MessageType.dlConnectionAccept.name;
-                response['wsAddress'] = 'ws://${await NetworkInfo().getWifiIP()}:8080';
+                response['wsAddress'] =
+                    'ws://${await NetworkInfo().getWifiIP()}:8080'; //#TODO: spiustit ws server a pripojit se k nemu
               } else {
                 response['type'] = MessageType.dlConnectionRefuse.name;
               }
 
               String jsonResponse = json.encode(response);
-              socket.send(utf8.encode(jsonResponse), datagram.address, datagram.port);
+              socket.send(
+                  utf8.encode(jsonResponse), datagram.address, datagram.port);
               break;
 
-            case MessageType.dlConnectionAccept:
+            case MessageType
+                  .dlConnectionAccept: //#TODO: tady muze zacit pripojeni k WS serveru, pak vymena ICE kandidatu atd,.
               print('Connection accepted by peer: ${decodedMessage['uuid']}');
+              await _signalingClient.connect(decodedMessage['wsAddress']);
               break;
 
             case MessageType.dlConnectionRefuse:
