@@ -26,7 +26,6 @@ class UdpDiscovery {
   final SignalingServer _signalingServer = SignalingServer();
   final SignalingClient _signalingClient = SignalingClient();
 
-
   Function(OtherDevice) onDeviceDiscovered = (device) {};
   late Future<bool?> Function(String uuid, String name, String deviceType)
       onConnectionRequest;

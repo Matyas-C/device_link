@@ -32,9 +32,12 @@ class PhoneConnect extends StatelessWidget {
   Widget build(BuildContext context) {
     return MaterialApp(
       title: 'DeviceLink',
-      theme: ThemeData.dark().copyWith(
-        primaryColor: Colors.blue,
-        scaffoldBackgroundColor: Colors.grey[900],
+      darkTheme: ThemeData(
+        useMaterial3: true,
+        brightness: Brightness.dark,
+        colorSchemeSeed: const Color.fromRGBO(0, 171, 247, 1),
+      ).copyWith(
+        scaffoldBackgroundColor: Colors.grey.shade900,
       ),
       home: const BaseScreen(),
     );

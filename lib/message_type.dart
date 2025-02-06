@@ -13,3 +13,11 @@ enum SignalingMessageType {
   webRtcAnswer,
   iceCandidate,
 }
+
+enum ConnectionState {
+  connected,
+}
+
+enum infoChannelMessageType {
+  deviceInfo,
+}

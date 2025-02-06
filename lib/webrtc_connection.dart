@@ -1,62 +1,134 @@
 import 'dart:async';
 import 'dart:convert';
+import 'package:device_link/util/device_type.dart';
 import 'package:flutter_webrtc/flutter_webrtc.dart';
 import 'package:device_link/signaling_client.dart';
 import 'package:device_link/message_type.dart';
+import 'package:hive_ce_flutter/hive_flutter.dart';
+import 'package:hive_ce/hive.dart';
+import 'connected_device.dart';
 
 class WebRtcConnection {
   static final WebRtcConnection _instance = WebRtcConnection._internal();
   factory WebRtcConnection() => _instance;
   WebRtcConnection._internal();
 
+  final _deviceBox = Hive.box('device');
   final _signalingClient = SignalingClient.instance;
   static WebRtcConnection get instance => _instance;
 
   late final RTCPeerConnection _peerConnection;
-  late final RTCDataChannel _fileDataChannel;
+  late final RTCDataChannel _statusDataChannel;
+  late final RTCDataChannel _infoDataChannel;
   late final RTCSessionDescription _offer;
   late final RTCSessionDescription _answer;
+  final Completer<void> _connectionCompleter = Completer<void>();
+
+  Function(ConnectedDevice) onDeviceConnected = (device) {};
 
   Future<void> initialize() async {
     _peerConnection = await createPeerConnection({});
+    int channelCount = 2;
+    int channelsReady = 0;
 
-    _peerConnection.onDataChannel = (RTCDataChannel fileDataChannel) {
-      print('Data channel created');
-      _fileDataChannel = fileDataChannel;
-      _handleDataChannels();
-    };
+    _peerConnection.onDataChannel = (RTCDataChannel dataChannel) {
+      print('Status channel created');
 
-    _peerConnection.onConnectionState = (state) {
-      if (state == RTCPeerConnectionState.RTCPeerConnectionStateConnected) {
-        print('---------');
-        print('Connected');
-        print('---------');
+      switch (dataChannel.label) {
+        case 'statusChannel':
+          _statusDataChannel = dataChannel;
+          channelsReady++;
+          break;
+        case 'infoChannel':
+          _infoDataChannel = dataChannel;
+          channelsReady++;
+          break;
+        default:
+          print('Unknown data channel');
+          break;
+      }
+
+      if (channelsReady == channelCount) {
+        _handleDataChannels();
       }
     };
+
+    /*
+     * _peerConnection.onConnectionState = (state) {
+     *   if (state == RTCPeerConnectionState.RTCPeerConnectionStateConnected) {
+     *    print('Connected');
+     *   }
+     * };
+     */
   }
 
-  //vytvoreni a prvotni nastaveni data kanalu (napr buffer size
+  //vytvoreni a prvotni nastaveni data kanalu (napr buffer size)
   Future<void> initDataChannels() async {
-    _fileDataChannel = await _peerConnection.createDataChannel('fileChannel', RTCDataChannelInit());
-    print('Data channel created');
+    _infoDataChannel = await _peerConnection.createDataChannel('infoChannel', RTCDataChannelInit());
+    print('Info channel created');
+    _statusDataChannel = await _peerConnection.createDataChannel('statusChannel', RTCDataChannelInit());
+    print('Status channel created');
     _handleDataChannels();
   }
 
   Future<void> _handleDataChannels() async {
-    //po inicializaci kanalu
-    _fileDataChannel.onDataChannelState = (RTCDataChannelState state) {
-      if (state == RTCDataChannelState.RTCDataChannelOpen) {
-        print('Data channel open');
 
-        //kdyz prijde zprava...
-        _fileDataChannel.onMessage = (RTCDataChannelMessage message) {
-          print('Received message: ${message.text}');
+    _infoDataChannel.onDataChannelState = (RTCDataChannelState state) {
+      if (state == RTCDataChannelState.RTCDataChannelOpen) {
+        print('Info channel open');
+
+        _infoDataChannel.onMessage = (RTCDataChannelMessage message) async {
+          Map<String, dynamic> decodedMessage = json.decode(message.text);
+          var messageType = infoChannelMessageType.values.byName(decodedMessage['type']);
+
+          switch (messageType) {
+            case infoChannelMessageType.deviceInfo:
+              print('Device info received');
+              await waitForConnectionComplete();
+              var connectedDevice = ConnectedDevice.create(
+                uuid: decodedMessage['uuid'],
+                name: decodedMessage['deviceName'],
+                deviceType: decodedMessage['deviceType'],
+              );
+              onDeviceConnected(connectedDevice);
+              break;
+            default:
+              print('Unknown message type');
+              break;
+          }
         };
 
-        //testovaci zpravy
-        for (int i = 0; i < 10; i++) {
-          _fileDataChannel.send(RTCDataChannelMessage('Hello from Flutter'));
-        }
+        final Map<String, dynamic> infoMessage = {
+          'type': infoChannelMessageType.deviceInfo.name,
+          'deviceType': determineDeviceType(),
+          'deviceName': _deviceBox.get('name'),
+          'uuid': _deviceBox.get('uuid'),
+        };
+        _infoDataChannel.send(RTCDataChannelMessage(json.encode(infoMessage)));
+      }
+    };
+
+    //status channel - mel by se inicializovat jako posledni
+    _statusDataChannel.onDataChannelState = (RTCDataChannelState state) {
+      if (state == RTCDataChannelState.RTCDataChannelOpen) {
+        print('Status channel open');
+
+        _statusDataChannel.onMessage = (RTCDataChannelMessage message) async{
+          var connectionState = ConnectionState.values.byName(message.text);
+
+          switch (connectionState) {
+            case ConnectionState.connected:
+              print('signaling process finished');
+              _connectionCompleter.complete();
+              break;
+
+            default:
+              print('Unknown connection state');
+              break;
+          }
+        };
+
+        _statusDataChannel.send(RTCDataChannelMessage(ConnectionState.connected.name));
       }
     };
   }
@@ -110,5 +182,9 @@ class WebRtcConnection {
 
   Future<void> addCandidate(RTCIceCandidate candidate) async {
     await _peerConnection.addCandidate(candidate);
+  }
+
+  Future<void> waitForConnectionComplete() async {
+    await _connectionCompleter.future;
   }
 }
