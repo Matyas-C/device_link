@@ -11,30 +11,34 @@ class BaseScreen extends StatefulWidget {
   const BaseScreen({super.key});
 
   @override
-  State<BaseScreen> createState() => _BaseScreenState();
+  State<BaseScreen> createState() => BaseScreenState();
 }
 
-class _BaseScreenState extends State<BaseScreen> {
+class BaseScreenState extends State<BaseScreen> {
   int currentPageIndex = 0;
 
-  final List<Widget> _pages = [
-    const HomePage(),
-    const DevicesPage(),
-    const SettingsPage(),
-  ];
+  late final List<Widget> _pages;
 
   @override
   void initState() {
+    void navigateTo(int index) {
+      setState(() {
+        currentPageIndex = index;
+      });
+    }
+
+    _pages = [
+      HomePage(onNavigate: navigateTo),
+      const DevicesPage(),
+      const SettingsPage(),
+    ];
     super.initState();
-    UdpDiscovery().onConnectionRequest = (String uuid, String name, String deviceType) async {
+    UdpDiscovery().onConnectionRequest =
+        (String uuid, String name, String deviceType) async {
       bool? wasAccepted = await showDialog(
         context: context,
         builder: (BuildContext context) {
-          return ResponseDialog(
-              uuid: uuid,
-              name: name,
-              deviceType: deviceType
-          );
+          return ResponseDialog(uuid: uuid, name: name, deviceType: deviceType);
         },
       );
       return wasAccepted;

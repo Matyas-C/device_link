@@ -11,6 +11,7 @@ import 'other_device.dart';
 import 'message_type.dart';
 import 'signaling_server.dart';
 import 'signaling_client.dart';
+import 'webrtc_connection.dart';
 
 class UdpDiscovery {
   static final UdpDiscovery _instance = UdpDiscovery._internal();
@@ -24,6 +25,7 @@ class UdpDiscovery {
   late final RawDatagramSocket socket;
   final SignalingServer _signalingServer = SignalingServer();
   final SignalingClient _signalingClient = SignalingClient();
+
 
   Function(OtherDevice) onDeviceDiscovered = (device) {};
   late Future<bool?> Function(String uuid, String name, String deviceType)
@@ -45,11 +47,10 @@ class UdpDiscovery {
     };
 
     socket.broadcastEnabled = true;
-    socket.send(
-        utf8.encode(json.encode(discoveryMessage)),
-        InternetAddress(broadcastAddress!),
-        8081); //hazi error kdyz neni internet, pridat nejakej null check
+    socket.send(utf8.encode(json.encode(discoveryMessage)), InternetAddress(broadcastAddress!), 8081); //hazi error kdyz neni internet, pridat nejakej null check
   }
+
+
 
   Future<void> sendConnectionRequest(String ip) async {
     final Map<String, dynamic> connectionRequestMessage = {
@@ -72,8 +73,8 @@ class UdpDiscovery {
       'version': '1.0',
     };
 
-    socket.send(utf8.encode(json.encode(cancelRequestMessage)),
-        InternetAddress(ip), 8081);
+    _signalingClient.disconnect();
+    socket.send(utf8.encode(json.encode(cancelRequestMessage)), InternetAddress(ip), 8081);
     print('Sent cancel request: ${json.encode(cancelRequestMessage)}');
   }
 
@@ -86,8 +87,7 @@ class UdpDiscovery {
           Map<String, dynamic> decodedMessage = json.decode(message);
           if (decodedMessage['uuid'] == uuid) return;
 
-          MessageType messageType =
-              MessageType.values.byName(decodedMessage['type']);
+          MessageType messageType = MessageType.values.byName(decodedMessage['type']);
 
           switch (messageType) {
             case MessageType.dlDiscover:
@@ -131,13 +131,16 @@ class UdpDiscovery {
                 break;
               }
 
+              bool serverReady = await _signalingServer.isServerReady;
               if (wasAccepted) {
-                _signalingServer.start();
-                await _signalingServer.waitForServerReady();
+                if (!serverReady) {
+                  _signalingServer.start();
+                  await _signalingServer.waitForServerReady();
+                }
                 await _signalingClient.connect('ws://${await NetworkInfo().getWifiIP()}:8080');
                 response['type'] = MessageType.dlConnectionAccept.name;
                 response['wsAddress'] =
-                    'ws://${await NetworkInfo().getWifiIP()}:8080'; //#TODO: spiustit ws server a pripojit se k nemu
+                    'ws://${await NetworkInfo().getWifiIP()}:8080';
               } else {
                 response['type'] = MessageType.dlConnectionRefuse.name;
               }
@@ -147,8 +150,7 @@ class UdpDiscovery {
                   utf8.encode(jsonResponse), datagram.address, datagram.port);
               break;
 
-            case MessageType
-                  .dlConnectionAccept: //#TODO: tady muze zacit pripojeni k WS serveru, pak vymena ICE kandidatu atd,.
+            case MessageType.dlConnectionAccept: //#TODO: tady muze zacit pripojeni k WS serveru, pak vymena ICE kandidatu atd,.
               print('Connection accepted by peer: ${decodedMessage['uuid']}');
               await _signalingClient.connect(decodedMessage['wsAddress']);
               break;
@@ -160,6 +162,7 @@ class UdpDiscovery {
 
             case MessageType.dlRequestCancel:
               ResponseDialog.closeDialog();
+              _signalingClient.disconnect();
               print('Connection request cancelled by peer');
               break;
 

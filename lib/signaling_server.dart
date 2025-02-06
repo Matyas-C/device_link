@@ -1,3 +1,4 @@
+import 'dart:convert';
 import 'dart:io';
 import 'package:network_info_plus/network_info_plus.dart';
 import 'message_type.dart';
@@ -10,7 +11,7 @@ class SignalingServer {
 
   late final HttpServer _server;
   final List<WebSocket> _connectedClients = [];
-  final Completer<void> _serverReady = Completer<void>();
+  Completer<void> _serverReady = Completer<void>();
 
   Future<void> start() async {
     var address = await NetworkInfo().getWifiIP();
@@ -40,12 +41,17 @@ class SignalingServer {
 
   Future<void> waitForServerReady() => _serverReady.future;
 
+  Future<bool> get isServerReady async => _serverReady.isCompleted;
+
   void _handleWebSocket(WebSocket socket) {
     _connectedClients.add(socket);
     print('Client connected to server');
 
     if (_connectedClients.length == 2) {
-      _connectedClients[0].add(SignalingMessageType.clientConnected.name);
+      final Map<String, String> secondClientConnectedMessage = {
+        'type': SignalingMessageType.clientConnected.name,
+      };
+      _connectedClients[0].add(json.encode(secondClientConnectedMessage));
     }
 
     socket.listen((message) {
@@ -65,6 +71,8 @@ class SignalingServer {
 
   Future<void> stop() async {
     await _server.close();
+    _connectedClients.clear();
+    _serverReady = Completer<void>();
     print('Server stopped');
   }
 }

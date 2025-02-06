@@ -9,4 +9,7 @@ enum MessageType {
 
 enum SignalingMessageType {
   clientConnected,
+  webRtcOffer,
+  webRtcAnswer,
+  iceCandidate,
 }

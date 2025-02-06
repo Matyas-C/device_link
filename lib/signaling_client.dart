@@ -1,10 +1,16 @@
+import 'dart:convert';
 import 'dart:io';
 import 'message_type.dart';
+import 'package:device_link/webrtc_connection.dart';
+import 'package:flutter_webrtc/flutter_webrtc.dart';
 
 class SignalingClient {
   static final SignalingClient _instance = SignalingClient._internal();
   factory SignalingClient() => _instance;
   SignalingClient._internal();
+
+  static SignalingClient get instance => _instance;
+  WebRtcConnection get _webRtcConnection => WebRtcConnection.instance;
 
   WebSocket? _socket;
   bool get isConnected => _socket != null;
@@ -14,7 +20,7 @@ class SignalingClient {
       _socket = await WebSocket.connect(wsUrl);
 
       _socket!.listen(
-        (message) {
+            (message) {
           _handleMessage(message);
         },
         onError: (error) {
@@ -37,8 +43,38 @@ class SignalingClient {
   }
 
   Future<void> _handleMessage(String message) async {
-    if (message == SignalingMessageType.clientConnected.name) {
-      print('Second client connected to server');
+    Map<String, dynamic> decodedMessage = jsonDecode(message);
+    SignalingMessageType messageType = SignalingMessageType.values.byName(decodedMessage['type']);
+
+    switch (messageType) {
+      case SignalingMessageType.clientConnected:
+        print('Second client connected to server');
+        await _webRtcConnection.initialize();
+        await _webRtcConnection.initDataChannels();
+        await _webRtcConnection.sendOffer();
+        break;
+
+      case SignalingMessageType.webRtcOffer:
+        print('Received WebRTC offer');
+        await _webRtcConnection.initialize();
+        await _webRtcConnection.handleOffer(decodedMessage['sdp']);
+        await _webRtcConnection.startIceExchange();
+        break;
+
+      case SignalingMessageType.webRtcAnswer:
+        print('Received WebRTC answer');
+        await _webRtcConnection.handleAnswer(decodedMessage['sdp']);
+        await _webRtcConnection.startIceExchange();
+        break;
+
+      case SignalingMessageType.iceCandidate:
+        RTCIceCandidate candidate = RTCIceCandidate(
+          decodedMessage['candidate']['candidate'],
+          decodedMessage['candidate']['sdpMid'],
+          decodedMessage['candidate']['sdpMLineIndex'],
+        );
+        await _webRtcConnection.addCandidate(candidate);
+        break;
     }
   }
 
