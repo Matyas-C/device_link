@@ -18,15 +18,17 @@ class _HomePageState extends State<HomePage> {
   @override
   void initState() {
     super.initState();
-    WebRtcConnection.instance.onDeviceConnected = (device) {
-      widget.onNavigate(0);
+    WebRtcConnection.instance.onDeviceConnected = (device) async{
+      await widget.onNavigate(0);
       ConnectingDialog.closeDialog();
+      return;
     };
   }
   @override
   Widget build(BuildContext context) {
     if (ConnectedDevice.instance != null) {
       return HomePageDeviceConnected(
+        onNavigate: widget.onNavigate,
         initialDeviceName: ConnectedDevice.instance!.name,
         uuid: ConnectedDevice.instance!.uuid,
         deviceType: ConnectedDevice.instance!.deviceType,

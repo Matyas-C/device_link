@@ -1,17 +1,21 @@
 import 'package:flutter/material.dart';
 import 'package:device_link/util/device_icon.dart';
 import 'package:device_link/ui/dialog/disconnect_dialog.dart';
+import 'package:device_link/util/connection_manager.dart';
 
 class HomePageDeviceConnected extends StatefulWidget {
   final String uuid;
   final String deviceType;
   final String initialDeviceName;
 
+  final Function(int) onNavigate;
+
   const HomePageDeviceConnected({
     super.key,
     required this.initialDeviceName,
     required this.uuid,
     required this.deviceType,
+    required this.onNavigate,
   });
 
   @override
@@ -119,9 +123,9 @@ class _HomePageDeviceConnectedState extends State<HomePageDeviceConnected> {
                     return const DisconnectDialog();
                   },
                 );
-
                 if (result == true) {
-                  // Add disconnect logic here
+                  await endPeerConnection(initiator: true);
+                  await widget.onNavigate(1);
                 }
               },
               icon: const Icon(Icons.close, color: Colors.red),

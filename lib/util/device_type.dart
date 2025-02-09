@@ -1,5 +1,6 @@
 import 'dart:io';
 
+//TODO: prepsat na enum
 String determineDeviceType() {
   if (Platform.isWindows || Platform.isLinux || Platform.isMacOS) {
     return 'computer';

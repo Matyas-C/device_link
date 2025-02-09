@@ -1,5 +1,6 @@
 import 'dart:async';
 import 'dart:convert';
+import 'package:device_link/util/connection_manager.dart';
 import 'package:device_link/util/device_type.dart';
 import 'package:flutter_webrtc/flutter_webrtc.dart';
 import 'package:device_link/signaling_client.dart';
@@ -17,14 +18,14 @@ class WebRtcConnection {
   final _signalingClient = SignalingClient.instance;
   static WebRtcConnection get instance => _instance;
 
-  late final RTCPeerConnection _peerConnection;
-  late final RTCDataChannel _statusDataChannel;
-  late final RTCDataChannel _infoDataChannel;
-  late final RTCSessionDescription _offer;
-  late final RTCSessionDescription _answer;
-  final Completer<void> _connectionCompleter = Completer<void>();
+  late RTCPeerConnection _peerConnection;
+  late RTCDataChannel _statusDataChannel;
+  late RTCDataChannel _infoDataChannel;
+  late RTCSessionDescription _offer;
+  late RTCSessionDescription _answer;
+  Completer<void> _connectionCompleter = Completer<void>();
 
-  Function(ConnectedDevice) onDeviceConnected = (device) {};
+  Future<void> Function(ConnectedDevice) onDeviceConnected = (device) async {};
 
   Future<void> initialize() async {
     _peerConnection = await createPeerConnection({});
@@ -32,7 +33,6 @@ class WebRtcConnection {
     int channelsReady = 0;
 
     _peerConnection.onDataChannel = (RTCDataChannel dataChannel) {
-      print('Status channel created');
 
       switch (dataChannel.label) {
         case 'statusChannel':
@@ -79,18 +79,18 @@ class WebRtcConnection {
 
         _infoDataChannel.onMessage = (RTCDataChannelMessage message) async {
           Map<String, dynamic> decodedMessage = json.decode(message.text);
-          var messageType = infoChannelMessageType.values.byName(decodedMessage['type']);
+          var messageType = InfoChannelMessageType.values.byName(decodedMessage['type']);
 
           switch (messageType) {
-            case infoChannelMessageType.deviceInfo:
+            case InfoChannelMessageType.deviceInfo:
               print('Device info received');
               await waitForConnectionComplete();
-              var connectedDevice = ConnectedDevice.create(
+              var connectedDevice = await ConnectedDevice.create(
                 uuid: decodedMessage['uuid'],
                 name: decodedMessage['deviceName'],
                 deviceType: decodedMessage['deviceType'],
               );
-              onDeviceConnected(connectedDevice);
+              await onDeviceConnected(connectedDevice);
               break;
             default:
               print('Unknown message type');
@@ -99,7 +99,7 @@ class WebRtcConnection {
         };
 
         final Map<String, dynamic> infoMessage = {
-          'type': infoChannelMessageType.deviceInfo.name,
+          'type': InfoChannelMessageType.deviceInfo.name,
           'deviceType': determineDeviceType(),
           'deviceName': _deviceBox.get('name'),
           'uuid': _deviceBox.get('uuid'),
@@ -120,6 +120,10 @@ class WebRtcConnection {
             case ConnectionState.connected:
               print('signaling process finished');
               _connectionCompleter.complete();
+              break;
+
+             case ConnectionState.disconnected:
+              await endPeerConnection(initiator: false);
               break;
 
             default:
@@ -186,5 +190,16 @@ class WebRtcConnection {
 
   Future<void> waitForConnectionComplete() async {
     await _connectionCompleter.future;
+  }
+
+  Future<void> sendDisconnectRequest() async {
+    await waitForConnectionComplete();
+    _statusDataChannel.send(RTCDataChannelMessage(ConnectionState.disconnected.name));
+  }
+
+  Future<void> closeConnection() async {
+    await _peerConnection.close();
+    _connectionCompleter = Completer<void>();
+    print('peer connection closed');
   }
 }

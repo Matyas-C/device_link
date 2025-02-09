@@ -3,7 +3,10 @@ import 'package:flutter/material.dart';
 class HomePageNoDevice extends StatelessWidget {
   final Function(int) onNavigate;
 
-  const HomePageNoDevice({super.key, required this.onNavigate});
+  const HomePageNoDevice({
+    super.key,
+    required this.onNavigate
+  });
 
   @override
   Widget build(BuildContext context) {

@@ -16,13 +16,13 @@ class DisconnectDialog extends StatelessWidget {
           children: [
             TextButton(
               onPressed: () {
-                Navigator.of(context).pop(true); // Return true if "Ano" is pressed
+                Navigator.of(context).pop(true);
               },
               child: const Text('Ano'),
             ),
             TextButton(
               onPressed: () {
-                Navigator.of(context).pop(false); // Return false if "Ne" is pressed
+                Navigator.of(context).pop(false);
               },
               child: const Text('Ne'),
             ),

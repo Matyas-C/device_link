@@ -149,7 +149,7 @@ class UdpDiscovery {
                   utf8.encode(jsonResponse), datagram.address, datagram.port);
               break;
 
-            case MessageType.dlConnectionAccept: //#TODO: tady muze zacit pripojeni k WS serveru, pak vymena ICE kandidatu atd,.
+            case MessageType.dlConnectionAccept:
               print('Connection accepted by peer: ${decodedMessage['uuid']}');
               await _signalingClient.connect(decodedMessage['wsAddress']);
               break;

@@ -16,8 +16,9 @@ enum SignalingMessageType {
 
 enum ConnectionState {
   connected,
+  disconnected,
 }
 
-enum infoChannelMessageType {
+enum InfoChannelMessageType {
   deviceInfo,
 }

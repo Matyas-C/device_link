@@ -13,11 +13,15 @@ class ConnectedDevice {
 
   static ConnectedDevice? get instance => _instance;
 
-  static ConnectedDevice create({
+  static Future<ConnectedDevice> create({
     required String uuid,
     required String name,
     required String deviceType,
-  }) => _instance ??= ConnectedDevice._(uuid: uuid, name: name, deviceType: deviceType);
+  }) async {
+    return _instance ??= ConnectedDevice._(uuid: uuid, name: name, deviceType: deviceType);
+  }
 
-  static void clear() => _instance = null;
+  static Future<void> clear() async {
+    _instance = null;
+  }
 }

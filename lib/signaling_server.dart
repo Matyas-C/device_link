@@ -9,7 +9,9 @@ class SignalingServer {
   factory SignalingServer() => _instance;
   SignalingServer._internal();
 
-  late final HttpServer _server;
+
+  static SignalingServer get instance => _instance;
+  late HttpServer _server;
   final List<WebSocket> _connectedClients = [];
   Completer<void> _serverReady = Completer<void>();
 
@@ -70,9 +72,12 @@ class SignalingServer {
   }
 
   Future<void> stop() async {
-    await _server.close();
-    _connectedClients.clear();
-    _serverReady = Completer<void>();
-    print('Server stopped');
+    if (_serverReady.isCompleted) {
+      await _server.close(force: true);
+      _serverReady = Completer<void>();
+      _connectedClients.clear();
+      print('Server stopped');
+      return;
+    }
   }
 }

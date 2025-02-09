@@ -78,7 +78,7 @@ class SignalingClient {
     }
   }
 
-  void disconnect() {
+  Future<void> disconnect() async{
     _socket?.close();
     _socket = null;
   }

@@ -2,23 +2,27 @@ import 'dart:async';
 import 'dart:io';
 import 'package:flutter/material.dart';
 import 'ui/base_screen.dart';
+import 'ui/pages/home_page.dart';
+import 'ui/pages/devices_page.dart';
+import 'ui/pages/settings_page.dart';
 import 'util/window_util.dart';
 import 'database.dart';
 import 'udp_discovery.dart';
+import 'util/navigation_service.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
-  await initDatabase();
 
+  await initDatabase();
   final deviceBox = DeviceBox();
   deviceBox.initData();
 
   final udpDiscovery = UdpDiscovery();
+  await udpDiscovery.initialize();
 
   if (Platform.isWindows || Platform.isLinux || Platform.isMacOS) {
     await setMinSize(400, 500);
   }
-  await udpDiscovery.initialize();
 
   Timer.periodic(const Duration(seconds: 1), (Timer t) => udpDiscovery.sendDiscoveryBroadcast());
 
