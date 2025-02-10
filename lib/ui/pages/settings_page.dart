@@ -1,14 +1,65 @@
 import 'package:flutter/material.dart';
+import 'package:file_picker/file_picker.dart';
+import 'package:hive_ce/hive.dart';
 
-class SettingsPage extends StatelessWidget {
+class SettingsPage extends StatefulWidget {
   const SettingsPage({super.key});
+
+  @override
+  State<SettingsPage> createState() => _SettingsPageState();
+}
+
+class _SettingsPageState extends State<SettingsPage> {
+
+  final _deviceBox = Hive.box('device');
+  late String _defaultFilePath;
+
+  @override
+  void initState() {
+    super.initState();
+    _defaultFilePath = _deviceBox.get('default_file_path');
+  }
 
   @override
   Widget build(BuildContext context) {
     return Center(
-      child: Text(
-        'Nastavení',
-        style: Theme.of(context).textTheme.headlineLarge,
+      child: ConstrainedBox(constraints: const BoxConstraints(maxWidth: 500),
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            const Text('Nastavení', style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold)),
+            const SizedBox(height: 20),
+            InkWell(
+              splashFactory: NoSplash.splashFactory,
+              onTap: () async {
+                String? path = await FilePicker.platform.getDirectoryPath();
+                if (path != null) {
+                  _deviceBox.put('default_file_path', path);
+                  setState(() {
+                    _defaultFilePath = path;
+                  });
+                }
+              },
+              child: Container(
+                margin: const EdgeInsets.all(8),
+                padding: const EdgeInsets.all(16),
+                decoration: BoxDecoration(
+                  color: Colors.black38,
+                  borderRadius: BorderRadius.circular(8),
+                ),
+                child: Center(
+                  child: Column(
+                    children: [
+                      const Text('Výchozí složka pro stahování souborů:', style: TextStyle(fontSize: 16)),
+                      Text(_defaultFilePath, style: const TextStyle(fontSize: 12)),
+                      const SizedBox(height: 10),
+                      const Text('Vybrat složku', style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold)),
+                    ],
+                  ),
+                  ),
+                ),
+            )],
+        ),
       ),
     );
   }

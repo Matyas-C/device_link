@@ -2,20 +2,21 @@ import 'package:flutter/material.dart';
 import 'package:device_link/util/device_icon.dart';
 import 'package:device_link/ui/dialog/disconnect_dialog.dart';
 import 'package:device_link/util/connection_manager.dart';
+import 'package:device_link/webrtc_connection.dart';
 
 class HomePageDeviceConnected extends StatefulWidget {
   final String uuid;
   final String deviceType;
   final String initialDeviceName;
 
-  final Function(int) onNavigate;
+  final Function(int) navigateTo;
 
   const HomePageDeviceConnected({
     super.key,
     required this.initialDeviceName,
     required this.uuid,
     required this.deviceType,
-    required this.onNavigate,
+    required this.navigateTo,
   });
 
   @override
@@ -52,7 +53,7 @@ class _HomePageDeviceConnectedState extends State<HomePageDeviceConnected> {
             const SizedBox(height: 20),
             InkWell(
               onTap: () {
-                // TODO: posilani souboru
+                WebRtcConnection.instance.transferFile();
               },
               borderRadius: BorderRadius.circular(8),
               child: Container(
@@ -125,7 +126,7 @@ class _HomePageDeviceConnectedState extends State<HomePageDeviceConnected> {
                 );
                 if (result == true) {
                   await endPeerConnection(initiator: true);
-                  await widget.onNavigate(1);
+                  await widget.navigateTo(1);
                 }
               },
               icon: const Icon(Icons.close, color: Colors.red),

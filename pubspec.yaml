@@ -1,5 +1,5 @@
 name: device_link
-description: "Program na propojení PC a telefonu na základě WebRTC"
+description: "Program na propojení PC a telefonu postavený na WebRTC"
 publish_to: 'none'
 version: 1.0.0+1
 
@@ -17,6 +17,7 @@ dependencies:
   hive_ce: ^2.7.0+1
   hive_ce_flutter: ^2.1.0
   flutter_webrtc: ^0.12.7
+  file_picker: ^8.3.3
 
 dev_dependencies:
   flutter_test:

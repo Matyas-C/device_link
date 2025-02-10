@@ -1,11 +1,11 @@
 import 'package:flutter/material.dart';
 
 class HomePageNoDevice extends StatelessWidget {
-  final Function(int) onNavigate;
+  final Function(int) navigateTo;
 
   const HomePageNoDevice({
     super.key,
-    required this.onNavigate
+    required this.navigateTo
   });
 
   @override
@@ -20,7 +20,7 @@ class HomePageNoDevice extends StatelessWidget {
           ),
           const SizedBox(height: 20),
           ElevatedButton(
-            onPressed: () => onNavigate(1),
+            onPressed: () => navigateTo(1),
             child: const Text('Přejít na kartu zařízení'),
           ),
         ],

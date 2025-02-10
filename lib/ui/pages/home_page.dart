@@ -6,9 +6,9 @@ import 'package:device_link/webrtc_connection.dart';
 import 'package:device_link/ui/dialog/connecting_dialog.dart';
 
 class HomePage extends StatefulWidget {
-  final Function(int) onNavigate;
+  final Function(int) navigateTo;
 
-  const HomePage({super.key, required this.onNavigate});
+  const HomePage({super.key, required this.navigateTo});
 
   @override
   State<HomePage> createState() => _HomePageState();
@@ -19,7 +19,7 @@ class _HomePageState extends State<HomePage> {
   void initState() {
     super.initState();
     WebRtcConnection.instance.onDeviceConnected = (device) async{
-      await widget.onNavigate(0);
+      await widget.navigateTo(0);
       ConnectingDialog.closeDialog();
       return;
     };
@@ -28,14 +28,14 @@ class _HomePageState extends State<HomePage> {
   Widget build(BuildContext context) {
     if (ConnectedDevice.instance != null) {
       return HomePageDeviceConnected(
-        onNavigate: widget.onNavigate,
+        navigateTo: widget.navigateTo,
         initialDeviceName: ConnectedDevice.instance!.name,
         uuid: ConnectedDevice.instance!.uuid,
         deviceType: ConnectedDevice.instance!.deviceType,
       );
     } else {
       return HomePageNoDevice(
-        onNavigate: widget.onNavigate,
+        navigateTo: widget.navigateTo,
       );
     }
   }

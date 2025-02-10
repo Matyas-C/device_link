@@ -28,7 +28,7 @@ class BaseScreenState extends State<BaseScreen> {
     }
 
     _pages = [
-      HomePage(onNavigate: navigateTo),
+      HomePage(navigateTo: navigateTo),
       const DevicesPage(),
       const SettingsPage(),
     ];
