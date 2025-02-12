@@ -21,4 +21,5 @@ enum ConnectionState {
 
 enum InfoChannelMessageType {
   deviceInfo,
+  chunkArrivedOk,
 }
