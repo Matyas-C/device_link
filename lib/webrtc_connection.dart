@@ -165,7 +165,8 @@ class WebRtcConnection {
         _selectedFileSink.add(message.binary);
         await _selectedFileSink.flush();
         receivedBytes += message.binary.length;
-        //print("Received $receivedBytes bytes");
+        //double receivedMb = receivedBytes / 1000000;
+        //print("Received $receivedMb MB");
         _infoDataChannel.send(RTCDataChannelMessage(chunkOkMessage));
         if (receivedBytes >= _fileSize) {
           await _selectedFileSink.close();
@@ -284,7 +285,6 @@ class WebRtcConnection {
   }
 
   Future<void> transferFile({required File file, required int fileSize, required String fileName, required String? fileExtension}) async {
-
     print('Sending file: $fileName');
 
     final Map<String, dynamic> fileInfo = {
@@ -297,20 +297,37 @@ class WebRtcConnection {
     await _fileInfoSent.future;
 
     int totalBytesSent = 0;
+    const int targetChunkSize = 256 * 1024; // 256 KiB je maximalni velikost RTC zpravy
 
     if (!_canSendChunk.isCompleted) {
       _canSendChunk.complete();
     }
 
+    List<int> buffer = [];
+
     await for (List<int> chunk in file.openRead()) {
+      buffer.addAll(chunk);
+      while (buffer.length >= targetChunkSize) {
+        await _canSendChunk.future;
+        List<int> dataToSend = buffer.sublist(0, targetChunkSize);
+        await _fileDataChannel.send(RTCDataChannelMessage.fromBinary(Uint8List.fromList(dataToSend)));
+
+        _canSendChunk = Completer<void>();
+
+        totalBytesSent += dataToSend.length;
+        print("Sent $totalBytesSent bytes");
+        buffer = buffer.sublist(targetChunkSize);
+      }
+    }
+
+    if (buffer.isNotEmpty) {
       await _canSendChunk.future;
-
-      await _fileDataChannel.send(RTCDataChannelMessage.fromBinary(Uint8List.fromList(chunk)),);
-
+      await _fileDataChannel.send(RTCDataChannelMessage.fromBinary(Uint8List.fromList(buffer)),);
       _canSendChunk = Completer<void>();
 
-      totalBytesSent += chunk.length;
-      //print("Sent $totalBytesSent bytes");
+      totalBytesSent += buffer.length;
+      //print("Sent final $totalBytesSent bytes");
+      buffer.clear();
     }
 
     _fileInfoSent = Completer<void>();
