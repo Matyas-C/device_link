@@ -110,8 +110,7 @@ class UdpDiscovery {
                 name: decodedMessage['name'],
                 ip: decodedMessage['ip'],
               );
-              if (DiscoveredDevices.list.any((d) => d.uuid == device.uuid))
-                return;
+              if (DiscoveredDevices.list.any((d) => d.uuid == device.uuid)) return;
               onDeviceDiscovered(device);
               break;
 

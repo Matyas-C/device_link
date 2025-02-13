@@ -315,7 +315,7 @@ class WebRtcConnection {
         _canSendChunk = Completer<void>();
 
         totalBytesSent += dataToSend.length;
-        print("Sent $totalBytesSent bytes");
+        //print("Sent $totalBytesSent bytes");
         buffer = buffer.sublist(targetChunkSize);
       }
     }

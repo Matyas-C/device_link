@@ -65,9 +65,22 @@ class _DevicesPageState extends State<DevicesPage> {
                 ],
               ),
             ),
-            const Text(
-              "Nalezená zařízení",
-              style: TextStyle(fontSize: 24),
+            Row(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                const Text(
+                  "Nalezená zařízení",
+                  style: TextStyle(fontSize: 24),
+                ),
+                IconButton(
+                  onPressed: () {
+                    setState(() {
+                      DiscoveredDevices.clearDevices();
+                    });
+                  },
+                  icon: const Icon(Icons.repeat),
+                )
+              ],
             ),
             ConstrainedBox(
               constraints: const BoxConstraints(maxWidth: 600),
