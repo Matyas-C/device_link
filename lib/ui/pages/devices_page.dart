@@ -19,6 +19,7 @@ class _DevicesPageState extends State<DevicesPage> {
   void initState() {
     super.initState();
     UdpDiscovery().onDeviceDiscovered = (device) {
+      if (!mounted) return;
       setState(() {
         DiscoveredDevices.addDevice(device);
       });

@@ -53,7 +53,7 @@ class _HomePageDeviceConnectedState extends State<HomePageDeviceConnected> {
             const SizedBox(height: 20),
             InkWell(
               onTap: () {
-                WebRtcConnection.instance.transferFile();
+                WebRtcConnection.instance.transferFiles();
               },
               borderRadius: BorderRadius.circular(8),
               child: Container(

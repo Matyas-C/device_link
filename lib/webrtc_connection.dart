@@ -27,8 +27,16 @@ class WebRtcConnection {
   late RTCDataChannel _fileDataChannel;
   late RTCSessionDescription _offer;
   late RTCSessionDescription _answer;
+  late File _selectedFile;
+  late IOSink _selectedFileSink;
+  late String _selectedDirectory;
+  late String _fileName;
+  late String _fileType;
+  late int _fileSize;
   Completer<void> _connectionCompleter = Completer<void>();
   Completer<void> _canSendChunk = Completer<void>();
+  Completer<void> _fileInfoSent = Completer<void>();
+  Completer<void> _fileReceived = Completer<void>();
 
   Future<void> Function(ConnectedDevice) onDeviceConnected = (device) async {};
 
@@ -67,11 +75,13 @@ class WebRtcConnection {
   Future<void> initDataChannels() async {
     _infoDataChannel = await _peerConnection.createDataChannel('infoChannel', RTCDataChannelInit());
     print('Info channel created');
+
     _fileDataChannel = await _peerConnection.createDataChannel('fileChannel', RTCDataChannelInit());
-    _fileDataChannel.bufferedAmountLowThreshold = 16384;
     print('File channel created');
+
     _statusDataChannel = await _peerConnection.createDataChannel('statusChannel', RTCDataChannelInit());
     print('Status channel created');
+
     _handleDataChannels();
   }
 
@@ -97,8 +107,20 @@ class WebRtcConnection {
               await onDeviceConnected(connectedDevice);
               break;
             case InfoChannelMessageType.chunkArrivedOk:
-              print('Chunk arrived ok');
+              //print('Chunk arrived ok');
               _canSendChunk.complete();
+              break;
+            case InfoChannelMessageType.fileInfo:
+              print('File info received');
+              await setFileInfo(decodedMessage);
+              break;
+            case InfoChannelMessageType.fileInfoArrivedOk:
+              print('File info arrived ok');
+              _fileInfoSent.complete();
+              break;
+            case InfoChannelMessageType.fileArrivedOk:
+              print('File arrived ok');
+              _fileReceived.complete();
               break;
             default:
               print('Unknown message type');
@@ -121,50 +143,47 @@ class WebRtcConnection {
         print('File channel open');
       }
 
-      Future<void> saveFile(List<int> fileBytes, String fileName, String? fileType) async {
-        var directory = _deviceBox.get('default_file_path');
-        File file = File('$directory/$fileName');
-
-        await file.writeAsBytes(fileBytes);
-        print("File saved to: ${file.path}");
-      }
-
       final Map<String, String>chunkOkMap = {
         'type': InfoChannelMessageType.chunkArrivedOk.name,
       };
       String chunkOkMessage = json.encode(chunkOkMap);
 
-      List<int> fileBuffer = [];
+      final Map <String, String>fileOkMap = {
+        'type': InfoChannelMessageType.fileArrivedOk.name,
+      };
+      String fileInfoOkMessage = json.encode(fileOkMap);
+
       int receivedBytes = 0;
-      int expectedFileSize = 0;
-      String? fileName;
-      String? fileType;
+      Stopwatch fileStopwatch = Stopwatch();
+      bool fileTransferInProgress = false;
 
-      //TODO: lepsi implementace posilani/prijmani souboru, tahle je moc pomala (peak asi 4 MB/s)
-      //TODO: napr. vytvorit kanal jen na raw data, zjednodusit transferFiles()...
-      //TODO: podpora pro vic souboru najednou
-      //TODO: progress bar
       _fileDataChannel.onMessage = (RTCDataChannelMessage message) async {
-        if (message.isBinary) {
-          fileBuffer.addAll(message.binary);
-          receivedBytes += message.binary.length;
-          print("Received $receivedBytes bytes");
-
-          _infoDataChannel.send(RTCDataChannelMessage(chunkOkMessage));
-
-          if (receivedBytes >= expectedFileSize) {
-            await saveFile(fileBuffer, fileName!, fileType);
-            fileBuffer.clear();
-            print("File received and saved.");
-          }
-        } else {
-          Map<String, dynamic> metadata = json.decode(message.text);
-          fileName = metadata['fileName'];
-          expectedFileSize = int.parse(metadata['fileSize']);
-          fileType = metadata['fileType'];
-          print("Receiving file: $fileName ($expectedFileSize bytes)");
+        if (!fileTransferInProgress) {
+          fileStopwatch.start();
+          fileTransferInProgress = true;
+        }
+        _selectedFileSink.add(message.binary);
+        await _selectedFileSink.flush();
+        receivedBytes += message.binary.length;
+        //print("Received $receivedBytes bytes");
+        _infoDataChannel.send(RTCDataChannelMessage(chunkOkMessage));
+        if (receivedBytes >= _fileSize) {
+          await _selectedFileSink.close();
+          print("File $_fileName´ received and saved.");
+          print("Transfer time: ${fileStopwatch.elapsed}");
+          double transferSpeed = (_fileSize / fileStopwatch.elapsedMilliseconds) * 1000 / 1000000;
+          fileStopwatch.stop();
+          fileStopwatch.reset();
+          fileTransferInProgress = false;
+          print("Transfer speed: $transferSpeed MB/s");
+          receivedBytes = 0;
+          await _infoDataChannel.send(RTCDataChannelMessage(fileInfoOkMessage));
         }
       };
+
+      //TODO: lepsi implementace posilani/prijmani souboru, tahle je moc pomala (peak asi 4 MB/s)
+      //TODO: progress bar
+      //TODO: vetsi message size?
     };
 
     //status channel - mel by se inicializovat jako posledni
@@ -181,7 +200,7 @@ class WebRtcConnection {
               _connectionCompleter.complete();
               break;
 
-             case ConnectionState.disconnected:
+            case ConnectionState.disconnected:
               await endPeerConnection(initiator: false);
               break;
 
@@ -211,11 +230,11 @@ class WebRtcConnection {
     await _peerConnection.setLocalDescription(_offer);
 
     if (_offer.sdp != null) {
-        final Map<String, dynamic> offerMessage = {
-          'type': SignalingMessageType.webRtcOffer.name,
-          'sdp': _offer.sdp!,
-        };
-        _signalingClient.sendMessage(json.encode(offerMessage));
+      final Map<String, dynamic> offerMessage = {
+        'type': SignalingMessageType.webRtcOffer.name,
+        'sdp': _offer.sdp!,
+      };
+      _signalingClient.sendMessage(json.encode(offerMessage));
     }
   }
 
@@ -224,11 +243,11 @@ class WebRtcConnection {
     await _peerConnection.setLocalDescription(_answer);
 
     if (_answer.sdp != null) {
-        final Map<String, dynamic> answerMessage = {
-          'type': SignalingMessageType.webRtcAnswer.name,
-          'sdp': _answer.sdp!,
-        };
-        _signalingClient.sendMessage(json.encode(answerMessage));
+      final Map<String, dynamic> answerMessage = {
+        'type': SignalingMessageType.webRtcAnswer.name,
+        'sdp': _answer.sdp!,
+      };
+      _signalingClient.sendMessage(json.encode(answerMessage));
     }
   }
 
@@ -251,27 +270,39 @@ class WebRtcConnection {
     await _connectionCompleter.future;
   }
 
-  Future<void> transferFile() async {
-    FilePickerResult? result = await FilePicker.platform.pickFiles();
-    if (result == null) return;
+  Future<void> transferFiles() async {
+    FilePickerResult? results = await FilePicker.platform.pickFiles(allowMultiple: true);
+    if (results == null) return;
 
-    File file = File(result.files.single.path!);
-    int fileSize = file.lengthSync();
-    String fileName = result.files.single.name;
-    String? fileType = result.files.single.extension;
+    for (PlatformFile f in results.files) {
+      if (f.path == null) continue;
+      _fileReceived = Completer<void>();
+      File file = File(f.path!);
+      await transferFile(file: file, fileSize: f.size, fileName: f.name, fileExtension: f.extension);
+      await _fileReceived.future;
+    }
+  }
+
+  Future<void> transferFile({required File file, required int fileSize, required String fileName, required String? fileExtension}) async {
+
+    print('Sending file: $fileName');
 
     final Map<String, dynamic> fileInfo = {
+      'type': InfoChannelMessageType.fileInfo.name,
       'fileName': fileName,
       'fileSize': fileSize.toString(),
-      'fileType': fileType,
+      'fileType': fileExtension,
     };
-    _fileDataChannel.send(RTCDataChannelMessage(json.encode(fileInfo)));
+    _infoDataChannel.send(RTCDataChannelMessage(json.encode(fileInfo)));
+    await _fileInfoSent.future;
 
-    Stream<List<int>> fileStream = file.openRead();
     int totalBytesSent = 0;
-    _canSendChunk.complete();
 
-    fileStream.asyncMap((List<int> chunk) async {
+    if (!_canSendChunk.isCompleted) {
+      _canSendChunk.complete();
+    }
+
+    await for (List<int> chunk in file.openRead()) {
       await _canSendChunk.future;
 
       await _fileDataChannel.send(RTCDataChannelMessage.fromBinary(Uint8List.fromList(chunk)),);
@@ -279,8 +310,29 @@ class WebRtcConnection {
       _canSendChunk = Completer<void>();
 
       totalBytesSent += chunk.length;
-      print("Sent $totalBytesSent bytes");
-    }).listen((_) {});
+      //print("Sent $totalBytesSent bytes");
+    }
+
+    _fileInfoSent = Completer<void>();
+    _canSendChunk = Completer<void>();
+    print('File sent, completers reset');
+  }
+
+  Future<void> setFileInfo(Map<String, dynamic> info)async{
+    _fileName = info['fileName'];
+    _fileType = info['fileType'];
+    _fileSize = int.parse(info['fileSize']);
+    _selectedDirectory = _deviceBox.get('default_file_path');
+    _selectedFile = File('$_selectedDirectory/$_fileName');
+    _selectedFileSink = _selectedFile.openWrite();
+
+    final Map<String, String>fileOkMap = {
+      'type': InfoChannelMessageType.fileInfoArrivedOk.name ,
+    };
+
+    print("new file info set: $_fileName, $_fileType, $_fileSize");
+
+    await _infoDataChannel.send(RTCDataChannelMessage(json.encode(fileOkMap)));
   }
 
   Future<void> sendDisconnectRequest() async {

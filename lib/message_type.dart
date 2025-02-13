@@ -22,4 +22,7 @@ enum ConnectionState {
 enum InfoChannelMessageType {
   deviceInfo,
   chunkArrivedOk,
+  fileInfo,
+  fileInfoArrivedOk,
+  fileArrivedOk,
 }

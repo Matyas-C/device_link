@@ -35,7 +35,7 @@ class UdpDiscovery {
     deviceName = _deviceBox.get('name');
     broadcastAddress = await NetworkInfo().getWifiBroadcast();
     socket = await RawDatagramSocket.bind(InternetAddress.anyIPv4, 8081);
-    startListener(socket);
+    await startListener(socket);
   }
 
   Future<void> sendDiscoveryBroadcast() async {
