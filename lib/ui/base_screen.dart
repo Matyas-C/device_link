@@ -33,8 +33,7 @@ class BaseScreenState extends State<BaseScreen> {
       const SettingsPage(),
     ];
     super.initState();
-    UdpDiscovery().onConnectionRequest =
-        (String uuid, String name, String deviceType) async {
+    UdpDiscovery().onConnectionRequest = (String uuid, String name, String deviceType) async {
       bool? wasAccepted = await showDialog(
         context: context,
         builder: (BuildContext context) {
@@ -43,6 +42,7 @@ class BaseScreenState extends State<BaseScreen> {
       );
       return wasAccepted;
     };
+
   }
 
   @override

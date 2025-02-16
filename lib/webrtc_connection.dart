@@ -11,6 +11,7 @@ import 'package:hive_ce/hive.dart';
 import 'connected_device.dart';
 import 'package:file_picker/file_picker.dart';
 import 'dart:typed_data';
+import 'package:device_link/ui/base_screen.dart';
 
 class WebRtcConnection {
   static final WebRtcConnection _instance = WebRtcConnection._internal();
@@ -32,10 +33,12 @@ class WebRtcConnection {
   late String _selectedDirectory;
   late String _fileName;
   late String _fileType;
+  late int _fileIndex;
+  late int _fileCount;
   late int _fileSize;
   Completer<void> _connectionCompleter = Completer<void>();
   Completer<void> _canSendChunk = Completer<void>();
-  Completer<void> _fileInfoSent = Completer<void>();
+  Completer<void> _fileInfoReceived = Completer<void>();
   Completer<void> _fileReceived = Completer<void>();
 
   Future<void> Function(ConnectedDevice) onDeviceConnected = (device) async {};
@@ -116,7 +119,7 @@ class WebRtcConnection {
               break;
             case InfoChannelMessageType.fileInfoArrivedOk:
               print('File info arrived ok');
-              _fileInfoSent.complete();
+              _fileInfoReceived.complete();
               break;
             case InfoChannelMessageType.fileArrivedOk:
               print('File arrived ok');
@@ -151,7 +154,7 @@ class WebRtcConnection {
       final Map <String, String>fileOkMap = {
         'type': InfoChannelMessageType.fileArrivedOk.name,
       };
-      String fileInfoOkMessage = json.encode(fileOkMap);
+      String fileOkMessage = json.encode(fileOkMap);
 
       int receivedBytes = 0;
       Stopwatch fileStopwatch = Stopwatch();
@@ -170,7 +173,7 @@ class WebRtcConnection {
         _infoDataChannel.send(RTCDataChannelMessage(chunkOkMessage));
         if (receivedBytes >= _fileSize) {
           await _selectedFileSink.close();
-          print("File $_fileName´ received and saved.");
+          print("File $_fileName received and saved.");
           print("Transfer time: ${fileStopwatch.elapsed}");
           double transferSpeed = (_fileSize / fileStopwatch.elapsedMilliseconds) * 1000 / 1000000;
           fileStopwatch.stop();
@@ -178,7 +181,7 @@ class WebRtcConnection {
           fileTransferInProgress = false;
           print("Transfer speed: $transferSpeed MB/s");
           receivedBytes = 0;
-          await _infoDataChannel.send(RTCDataChannelMessage(fileInfoOkMessage));
+          await _infoDataChannel.send(RTCDataChannelMessage(fileOkMessage));
         }
       };
 
@@ -275,26 +278,44 @@ class WebRtcConnection {
     FilePickerResult? results = await FilePicker.platform.pickFiles(allowMultiple: true);
     if (results == null) return;
 
-    for (PlatformFile f in results.files) {
+    for (int i = 0; i < results.files.length; i++) {
+      PlatformFile f = results.files[i];
       if (f.path == null) continue;
       _fileReceived = Completer<void>();
       File file = File(f.path!);
-      await transferFile(file: file, fileSize: f.size, fileName: f.name, fileExtension: f.extension);
+      await transferFile(
+          file: file,
+          fileSize: f.size,
+          fileName: f.name,
+          fileExtension: f.extension,
+          fileIndex: i,
+          fileCount: results.files.length
+      );
       await _fileReceived.future;
     }
   }
 
-  Future<void> transferFile({required File file, required int fileSize, required String fileName, required String? fileExtension}) async {
+  Future<void> transferFile({
+    required File file,
+    required int fileSize,
+    required String fileName,
+    required String? fileExtension,
+    required int fileIndex,
+    required int fileCount,
+  }) async {
+
     print('Sending file: $fileName');
 
     final Map<String, dynamic> fileInfo = {
       'type': InfoChannelMessageType.fileInfo.name,
       'fileName': fileName,
-      'fileSize': fileSize.toString(),
+      'fileSize': fileSize,
       'fileType': fileExtension,
+      'fileIndex': fileIndex,
+      'fileCount': fileCount,
     };
     _infoDataChannel.send(RTCDataChannelMessage(json.encode(fileInfo)));
-    await _fileInfoSent.future;
+    await _fileInfoReceived.future;
 
     int totalBytesSent = 0;
     const int targetChunkSize = 256 * 1024; // 256 KiB je maximalni velikost RTC zpravy
@@ -330,21 +351,23 @@ class WebRtcConnection {
       buffer.clear();
     }
 
-    _fileInfoSent = Completer<void>();
+    _fileInfoReceived = Completer<void>();
     _canSendChunk = Completer<void>();
     print('File sent, completers reset');
   }
 
-  Future<void> setFileInfo(Map<String, dynamic> info)async{
+  Future<void> setFileInfo(Map<String, dynamic> info) async {
     _fileName = info['fileName'];
     _fileType = info['fileType'];
-    _fileSize = int.parse(info['fileSize']);
+    _fileSize = info['fileSize'];
+    _fileIndex = info['fileIndex'];
+    _fileCount = info['fileCount'];
     _selectedDirectory = _deviceBox.get('default_file_path');
     _selectedFile = File('$_selectedDirectory/$_fileName');
     _selectedFileSink = _selectedFile.openWrite();
 
-    final Map<String, String>fileOkMap = {
-      'type': InfoChannelMessageType.fileInfoArrivedOk.name ,
+    final Map<String, String> fileOkMap = {
+      'type': InfoChannelMessageType.fileInfoArrivedOk.name,
     };
 
     print("new file info set: $_fileName, $_fileType, $_fileSize");
