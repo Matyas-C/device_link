@@ -11,7 +11,8 @@ import 'package:hive_ce/hive.dart';
 import 'connected_device.dart';
 import 'package:file_picker/file_picker.dart';
 import 'dart:typed_data';
-import 'package:device_link/ui/base_screen.dart';
+import 'package:device_link/ui/overlays/overlay_manager.dart';
+import 'package:device_link/ui/notifiers/file_transfer_progress_model.dart';
 
 class WebRtcConnection {
   static final WebRtcConnection _instance = WebRtcConnection._internal();
@@ -36,6 +37,7 @@ class WebRtcConnection {
   late int _fileIndex;
   late int _fileCount;
   late int _fileSize;
+  final  FileTransferProgressModel _progressBarModel = GlobalOverlayManager().fileTransferProgressModel;
   Completer<void> _connectionCompleter = Completer<void>();
   Completer<void> _canSendChunk = Completer<void>();
   Completer<void> _fileInfoReceived = Completer<void>();
@@ -170,6 +172,7 @@ class WebRtcConnection {
         receivedBytes += message.binary.length;
         //double receivedMb = receivedBytes / 1000000;
         //print("Received $receivedMb MB");
+        _progressBarModel.setProgress(bytesTransferred: receivedBytes);
         _infoDataChannel.send(RTCDataChannelMessage(chunkOkMessage));
         if (receivedBytes >= _fileSize) {
           await _selectedFileSink.close();
@@ -182,6 +185,7 @@ class WebRtcConnection {
           print("Transfer speed: $transferSpeed MB/s");
           receivedBytes = 0;
           await _infoDataChannel.send(RTCDataChannelMessage(fileOkMessage));
+          GlobalOverlayManager().removeProgressBar();
         }
       };
 
@@ -373,6 +377,14 @@ class WebRtcConnection {
     print("new file info set: $_fileName, $_fileType, $_fileSize");
 
     await _infoDataChannel.send(RTCDataChannelMessage(json.encode(fileOkMap)));
+
+    GlobalOverlayManager().showProgressBar();
+    await _progressBarModel.setFileInfo(
+      filename: _fileName,
+      fileIndex: _fileIndex,
+      fileSize: _fileSize,
+      totalFiles: _fileCount,
+    );
   }
 
   Future<void> sendDisconnectRequest() async {

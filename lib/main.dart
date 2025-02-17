@@ -1,14 +1,10 @@
 import 'dart:async';
 import 'dart:io';
 import 'package:flutter/material.dart';
-import 'ui/base_screen.dart';
-import 'ui/pages/home_page.dart';
-import 'ui/pages/devices_page.dart';
-import 'ui/pages/settings_page.dart';
 import 'util/window_util.dart';
 import 'database.dart';
 import 'udp_discovery.dart';
-import 'util/navigation_service.dart';
+import 'package:device_link/ui/router.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -34,7 +30,7 @@ class PhoneConnect extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return MaterialApp(
+    return MaterialApp.router(
       title: 'DeviceLink',
       darkTheme: ThemeData(
         useMaterial3: true,
@@ -43,7 +39,7 @@ class PhoneConnect extends StatelessWidget {
       ).copyWith(
         scaffoldBackgroundColor: Colors.grey.shade900,
       ),
-      home: const BaseScreen(),
+      routerConfig: router, // Use the GoRouter instance
     );
   }
 }

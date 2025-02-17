@@ -1,12 +1,9 @@
 import 'package:flutter/material.dart';
+import 'package:go_router/go_router.dart';
 
 class HomePageNoDevice extends StatelessWidget {
-  final Function(int) navigateTo;
 
-  const HomePageNoDevice({
-    super.key,
-    required this.navigateTo
-  });
+  const HomePageNoDevice({super.key});
 
   @override
   Widget build(BuildContext context) {
@@ -20,7 +17,7 @@ class HomePageNoDevice extends StatelessWidget {
           ),
           const SizedBox(height: 20),
           ElevatedButton(
-            onPressed: () => navigateTo(1),
+            onPressed: () => context.go('/devices'),
             child: const Text('Přejít na kartu zařízení'),
           ),
         ],

@@ -3,20 +3,18 @@ import 'package:device_link/util/device_icon.dart';
 import 'package:device_link/ui/dialog/disconnect_dialog.dart';
 import 'package:device_link/util/connection_manager.dart';
 import 'package:device_link/webrtc_connection.dart';
+import 'package:go_router/go_router.dart';
 
 class HomePageDeviceConnected extends StatefulWidget {
   final String uuid;
   final String deviceType;
   final String initialDeviceName;
 
-  final Function(int) navigateTo;
-
   const HomePageDeviceConnected({
     super.key,
     required this.initialDeviceName,
     required this.uuid,
     required this.deviceType,
-    required this.navigateTo,
   });
 
   @override
@@ -126,7 +124,9 @@ class _HomePageDeviceConnectedState extends State<HomePageDeviceConnected> {
                 );
                 if (result == true) {
                   await endPeerConnection(initiator: true);
-                  await widget.navigateTo(1);
+                  if (context.mounted) {
+                    context.go('/someRoute');
+                  }
                 }
               },
               icon: const Icon(Icons.close, color: Colors.red),

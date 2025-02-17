@@ -1,11 +1,15 @@
 import 'package:go_router/go_router.dart';
+import 'package:flutter/material.dart';
 import 'package:device_link/ui/app_shell.dart';
 import 'package:device_link/ui/pages/home_page.dart';
 import 'package:device_link/ui/pages/devices_page.dart';
 import 'package:device_link/ui/pages/settings_page.dart';
 
-final GoRouter router = GoRouter(
+final GlobalKey<NavigatorState> navigatorKey = GlobalKey<NavigatorState>();
+
+final GoRouter _router = GoRouter(
   initialLocation: '/home',
+  navigatorKey: navigatorKey,
   routes: [
     ShellRoute(
       builder: (context, state, child) {
@@ -31,6 +35,8 @@ final GoRouter router = GoRouter(
     ),
   ],
 );
+
+GoRouter get router => _router;
 
 int _getSelectedIndex(String location) {
   switch (Uri.parse(location).path) {

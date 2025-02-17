@@ -1,28 +1,31 @@
 import 'package:flutter/material.dart';
 import 'package:device_link/ui/overlays/file_transfer_progress_bar.dart';
+import 'package:device_link/ui/notifiers/file_transfer_progress_model.dart';
+import 'package:device_link/ui/router.dart';
 
 class GlobalOverlayManager {
   static final GlobalOverlayManager _instance = GlobalOverlayManager._internal();
   factory GlobalOverlayManager() => _instance;
   GlobalOverlayManager._internal();
 
+  final FileTransferProgressModel _fileTransferProgressModel = FileTransferProgressModel();
+  final FileTransferProgressBar _fileTransferProgressBar = const FileTransferProgressBar();
+  FileTransferProgressModel get fileTransferProgressModel => _fileTransferProgressModel;
+  FileTransferProgressBar get fileTransferProgressBar => _fileTransferProgressBar;
   OverlayEntry? _progressOverlay;
 
-  void showProgressBar(BuildContext context) {
+  showProgressBar() {
     removeProgressBar();
 
-    final overlayState = Overlay.of(context);
+    final overlayState = navigatorKey.currentState?.overlay;
 
     _progressOverlay = OverlayEntry(
-      builder: (context) => const Positioned(
-        top: 50,
-        left: 0,
-        right: 0,
-        child: Center(child: FileTransferProgressBar()),
+      builder: (context) => const Center(
+        child: FileTransferProgressBar(),
       ),
     );
 
-    overlayState.insert(_progressOverlay!);
+    overlayState?.insert(_progressOverlay!);
   }
 
   void removeProgressBar() {

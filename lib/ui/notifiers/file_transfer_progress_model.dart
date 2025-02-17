@@ -1,13 +1,13 @@
 import 'package:flutter/material.dart';
 
 class FileTransferProgressModel extends ChangeNotifier {
-  String _filename = "HFghjVDCXDXC.txt";
+  String _filename = "";
   int _fileIndex = 1;
   int _fileSize = 0;
   int _totalFiles = 45;
-  String _bytesTransferredFormatted = "45.4";
-  String _fileSizeFormatted = "225.84 KB";
-  double _progress = 0.235;
+  String _bytesTransferredFormatted = "";
+  String _fileSizeFormatted = "";
+  double _progress = 0.0;
 
   String get filename => _filename;
   int get fileIndex => _fileIndex;
@@ -36,7 +36,7 @@ class FileTransferProgressModel extends ChangeNotifier {
     }
 
     _filename = filename;
-    _fileIndex = fileIndex;
+    _fileIndex = fileIndex + 1;
     _fileSize = fileSize;
     _fileSizeFormatted = formatFileSize(fileSize);
     _totalFiles = totalFiles;
@@ -66,7 +66,7 @@ class FileTransferProgressModel extends ChangeNotifier {
 
   void resetValues() {
     _filename = "";
-    _fileIndex = 0;
+    _fileIndex = 1;
     _fileSize = 0;
     _totalFiles = 0;
     _bytesTransferredFormatted = "";

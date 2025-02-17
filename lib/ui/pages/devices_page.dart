@@ -2,7 +2,6 @@ import 'package:flutter/material.dart';
 import 'package:device_link/discovered_devices_list.dart';
 import 'package:device_link/udp_discovery.dart';
 import '../tiles/discovered_device_tile.dart';
-import 'package:device_link/other_device.dart';
 import 'package:device_link/util/device_type.dart';
 import 'package:device_link/util/device_icon.dart';
 import 'package:device_link/ui/other/device_name_text_controller.dart';

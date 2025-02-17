@@ -2,6 +2,7 @@ import 'dart:convert';
 import 'dart:io';
 import 'package:device_link/ui/dialog/connecting_dialog.dart';
 import 'package:device_link/ui/dialog/response_dialog.dart';
+import 'package:device_link/ui/router.dart';
 import 'package:network_info_plus/network_info_plus.dart';
 import 'package:device_link/discovered_devices_list.dart';
 import 'package:device_link/util/device_type.dart';
@@ -11,7 +12,7 @@ import 'other_device.dart';
 import 'message_type.dart';
 import 'signaling_server.dart';
 import 'signaling_client.dart';
-import 'webrtc_connection.dart';
+import 'package:flutter/material.dart';
 
 class UdpDiscovery {
   static final UdpDiscovery _instance = UdpDiscovery._internal();
@@ -27,8 +28,7 @@ class UdpDiscovery {
   final SignalingClient _signalingClient = SignalingClient();
 
   Function(OtherDevice) onDeviceDiscovered = (device) {};
-  late Future<bool?> Function(String uuid, String name, String deviceType)
-      onConnectionRequest;
+  late Future<bool?> Function(String uuid, String name, String deviceType) onConnectionRequest;
 
   Future<void> initialize() async {
     uuid = _deviceBox.get('uuid');
@@ -60,8 +60,7 @@ class UdpDiscovery {
       'name': deviceName,
     };
 
-    socket.send(utf8.encode(json.encode(connectionRequestMessage)),
-        InternetAddress(ip), 8081);
+    socket.send(utf8.encode(json.encode(connectionRequestMessage)), InternetAddress(ip), 8081);
     print('Sent connection request: ${json.encode(connectionRequestMessage)}');
   }
 
@@ -99,8 +98,7 @@ class UdpDiscovery {
                 'ip': await NetworkInfo().getWifiIP(),
               };
               String jsonResponse = json.encode(response);
-              socket.send(
-                  utf8.encode(jsonResponse), datagram.address, datagram.port);
+              socket.send(utf8.encode(jsonResponse), datagram.address, datagram.port);
               break;
 
             case MessageType.dlDiscoverResponse:
@@ -115,10 +113,16 @@ class UdpDiscovery {
               break;
 
             case MessageType.dlConnectionRequest:
-              bool? wasAccepted = await onConnectionRequest(
-                  decodedMessage['uuid'],
-                  decodedMessage['name'],
-                  decodedMessage['deviceType']);
+              bool? wasAccepted = await showDialog(
+                context: navigatorKey.currentContext!,
+                builder: (BuildContext context) {
+                  return ResponseDialog(
+                      uuid: decodedMessage['uuid'],
+                      name: decodedMessage['name'],
+                      deviceType: decodedMessage['deviceType']
+                  );
+                },
+              );
 
               final Map<String, dynamic> response = {
                 'uuid': uuid,
@@ -137,15 +141,13 @@ class UdpDiscovery {
                 }
                 await _signalingClient.connect('ws://${await NetworkInfo().getWifiIP()}:8080');
                 response['type'] = MessageType.dlConnectionAccept.name;
-                response['wsAddress'] =
-                    'ws://${await NetworkInfo().getWifiIP()}:8080';
+                response['wsAddress'] = 'ws://${await NetworkInfo().getWifiIP()}:8080';
               } else {
                 response['type'] = MessageType.dlConnectionRefuse.name;
               }
 
               String jsonResponse = json.encode(response);
-              socket.send(
-                  utf8.encode(jsonResponse), datagram.address, datagram.port);
+              socket.send(utf8.encode(jsonResponse), datagram.address, datagram.port);
               break;
 
             case MessageType.dlConnectionAccept:
