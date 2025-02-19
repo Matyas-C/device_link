@@ -4,22 +4,22 @@ import 'package:path_provider/path_provider.dart';
 
 Future<void> initDatabase() async {
   await Hive.initFlutter("PhoneConnect/data");
-  await Hive.openBox('device');
+  await Hive.openBox('settings');
 }
 
-class DeviceBox {
+class SettingsBox {
 
-  final _deviceBox = Hive.box('device');
+  final _settingsBox = Hive.box('settings');
 
   Future<void> initData() async {
-    if (!_deviceBox.containsKey('uuid')) {
-      _deviceBox.put('uuid', const Uuid().v4().toString());
+    if (!_settingsBox.containsKey('uuid')) {
+      _settingsBox.put('uuid', const Uuid().v4().toString());
     }
-    if (!_deviceBox.containsKey('name')) {
-      _deviceBox.put('name', 'Zařízení');
+    if (!_settingsBox.containsKey('name')) {
+      _settingsBox.put('name', 'Zařízení');
     }
-    if (!_deviceBox.containsKey('default_file_path')) {
-      _deviceBox.put('default_file_path', (await getDownloadsDirectory())!.path);
+    if (!_settingsBox.containsKey('default_file_path')) {
+      _settingsBox.put('default_file_path', (await getDownloadsDirectory())!.path);
     }
   }
 }

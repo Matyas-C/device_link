@@ -11,17 +11,20 @@ class SettingsPage extends StatefulWidget {
 
 class _SettingsPageState extends State<SettingsPage> {
 
-  final _deviceBox = Hive.box('device');
+  final _settingsBox = Hive.box('settings');
   late String _defaultFilePath;
 
   @override
   void initState() {
     super.initState();
-    _defaultFilePath = _deviceBox.get('default_file_path');
+    _defaultFilePath = _settingsBox.get('default_file_path');
   }
+
+  bool autoSendClipboard = false;
 
   @override
   Widget build(BuildContext context) {
+
     return Center(
       child: ConstrainedBox(constraints: const BoxConstraints(maxWidth: 500),
         child: Column(
@@ -34,7 +37,7 @@ class _SettingsPageState extends State<SettingsPage> {
               onTap: () async {
                 String? path = await FilePicker.platform.getDirectoryPath();
                 if (path != null) {
-                  _deviceBox.put('default_file_path', path);
+                  _settingsBox.put('default_file_path', path);
                   setState(() {
                     _defaultFilePath = path;
                   });
@@ -50,7 +53,7 @@ class _SettingsPageState extends State<SettingsPage> {
                 child: Center(
                   child: Column(
                     children: [
-                      const Text('Výchozí složka pro stahování souborů:', style: TextStyle(fontSize: 16)),
+                      const Text('Výchozí složka pro ukládání souborů:', style: TextStyle(fontSize: 16)),
                       Text(_defaultFilePath, style: const TextStyle(fontSize: 12)),
                       const SizedBox(height: 10),
                       const Text('Vybrat složku', style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold)),
@@ -58,7 +61,37 @@ class _SettingsPageState extends State<SettingsPage> {
                   ),
                   ),
                 ),
-            )],
+            ),
+            InkWell(
+              splashFactory: NoSplash.splashFactory,
+              onTap: () {},
+              child: Container(
+                margin: const EdgeInsets.all(8),
+                padding: const EdgeInsets.all(16),
+                decoration: BoxDecoration(
+                  color: Colors.black38,
+                  borderRadius: BorderRadius.circular(8),
+                ),
+                child: Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  children: [
+                    const Text(
+                      'Automatické posílaní schránky',
+                      style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
+                    ),
+                    Switch(
+                      value: autoSendClipboard,
+                      onChanged: (value) {
+                        setState(() {
+                          autoSendClipboard = value;
+                        });
+                      },
+                    ),
+                  ],
+                ),
+              ),
+            ),
+          ],
         ),
       ),
     );

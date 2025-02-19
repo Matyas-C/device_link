@@ -90,32 +90,14 @@ class _HomePageDeviceConnectedState extends State<HomePageDeviceConnected> {
                       color: Colors.black38,
                       borderRadius: BorderRadius.circular(8),
                     ),
-                    child: Column(
+                    child: const Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
-                        const Center(
+                        Center(
                           child: Text(
                             'Poslat schránku',
                             style: TextStyle(fontSize: 18),
                           ),
-                        ),
-                        const SizedBox(height: 20),
-                        Row(
-                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                          children: [
-                            Text(
-                              'Automatické posílaní schránky',
-                              style: TextStyle(fontSize: 14, color: Colors.grey[600]),
-                            ),
-                            Switch(
-                              value: autoSendClipboard,
-                              onChanged: (value) {
-                                setState(() {
-                                  autoSendClipboard = value;
-                                });
-                              },
-                            ),
-                          ],
                         ),
                       ],
                     ),
@@ -133,7 +115,7 @@ class _HomePageDeviceConnectedState extends State<HomePageDeviceConnected> {
                     if (result == true) {
                       await endPeerConnection(initiator: true);
                       if (context.mounted) {
-                        context.go('/home');
+                        context.go('/devices');
                       }
                     }
                   },

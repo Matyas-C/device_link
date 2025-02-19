@@ -19,7 +19,7 @@ class UdpDiscovery {
   factory UdpDiscovery() => _instance;
   UdpDiscovery._internal();
 
-  final _deviceBox = Hive.box('device');
+  final _settingsBox = Hive.box('settings');
   late final String uuid;
   late final String deviceName;
   late final String? broadcastAddress;
@@ -31,8 +31,8 @@ class UdpDiscovery {
   late Future<bool?> Function(String uuid, String name, String deviceType) onConnectionRequest;
 
   Future<void> initialize() async {
-    uuid = _deviceBox.get('uuid');
-    deviceName = _deviceBox.get('name');
+    uuid = _settingsBox.get('uuid');
+    deviceName = _settingsBox.get('name');
     broadcastAddress = await NetworkInfo().getWifiBroadcast();
     socket = await RawDatagramSocket.bind(InternetAddress.anyIPv4, 8081);
     await startListener(socket);

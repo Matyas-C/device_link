@@ -10,8 +10,8 @@ void main() async {
   WidgetsFlutterBinding.ensureInitialized();
 
   await initDatabase();
-  final deviceBox = DeviceBox();
-  deviceBox.initData();
+  final settingsBox = SettingsBox();
+  settingsBox.initData();
 
   final udpDiscovery = UdpDiscovery();
   await udpDiscovery.initialize();

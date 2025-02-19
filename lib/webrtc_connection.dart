@@ -19,7 +19,7 @@ class WebRtcConnection {
   factory WebRtcConnection() => _instance;
   WebRtcConnection._internal();
 
-  final _deviceBox = Hive.box('device');
+  final _settingsBox = Hive.box('settings');
   final _signalingClient = SignalingClient.instance;
   static WebRtcConnection get instance => _instance;
 
@@ -136,8 +136,8 @@ class WebRtcConnection {
         final Map<String, dynamic> infoMessage = {
           'type': InfoChannelMessageType.deviceInfo.name,
           'deviceType': determineDeviceType(),
-          'deviceName': _deviceBox.get('name'),
-          'uuid': _deviceBox.get('uuid'),
+          'deviceName': _settingsBox.get('name'),
+          'uuid': _settingsBox.get('uuid'),
         };
         _infoDataChannel.send(RTCDataChannelMessage(json.encode(infoMessage)));
       }
@@ -375,7 +375,7 @@ class WebRtcConnection {
     _fileSize = info['fileSize'];
     _fileIndex = info['fileIndex'];
     _fileCount = info['fileCount'];
-    _selectedDirectory = _deviceBox.get('default_file_path');
+    _selectedDirectory = _settingsBox.get('default_file_path');
     _selectedFile = File('$_selectedDirectory/$_fileName');
     _selectedFileSink = _selectedFile.openWrite();
 
