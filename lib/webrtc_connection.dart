@@ -190,8 +190,6 @@ class WebRtcConnection {
       };
 
       //TODO: lepsi implementace posilani/prijmani souboru, tahle je moc pomala (peak asi 4 MB/s)
-      //TODO: progress bar
-      //TODO: vetsi message size?
     };
 
     //status channel - mel by se inicializovat jako posledni
@@ -328,6 +326,15 @@ class WebRtcConnection {
       _canSendChunk.complete();
     }
 
+    GlobalOverlayManager().showProgressBar();
+    await _progressBarModel.setFileInfo(
+      filename: fileName,
+      fileIndex: fileIndex,
+      fileSize: fileSize,
+      totalFiles: fileCount,
+      isSender: true,
+    );
+
     List<int> buffer = [];
 
     await for (List<int> chunk in file.openRead()) {
@@ -340,6 +347,7 @@ class WebRtcConnection {
         _canSendChunk = Completer<void>();
 
         totalBytesSent += dataToSend.length;
+        _progressBarModel.setProgress(bytesTransferred: totalBytesSent);
         //print("Sent $totalBytesSent bytes");
         buffer = buffer.sublist(targetChunkSize);
       }
@@ -357,6 +365,7 @@ class WebRtcConnection {
 
     _fileInfoReceived = Completer<void>();
     _canSendChunk = Completer<void>();
+    GlobalOverlayManager().removeProgressBar();
     print('File sent, completers reset');
   }
 
@@ -384,6 +393,7 @@ class WebRtcConnection {
       fileIndex: _fileIndex,
       fileSize: _fileSize,
       totalFiles: _fileCount,
+      isSender: false,
     );
   }
 

@@ -31,7 +31,6 @@ class _FileTransferProgressBarState extends State<FileTransferProgressBar> {
               builder: (BuildContext context, Widget? child) {
                 return Container(
                   alignment: Alignment.center,
-                  constraints: const BoxConstraints(maxWidth: 500),
                   decoration: BoxDecoration(
                     color: Colors.grey.shade800.withOpacity(0.5),
                     borderRadius: BorderRadius.circular(10.0),
@@ -56,12 +55,22 @@ class _FileTransferProgressBarState extends State<FileTransferProgressBar> {
                               softWrap: false,
                             ),
                           ),
-                          Text(
-                            "${fileTransferProgressModel.fileIndex} / ${fileTransferProgressModel.totalFiles}",
-                            style: TextStyle(
-                              color: Colors.grey.shade300,
-                              fontSize: 16.0,
-                            ),
+                          Row(
+                            mainAxisAlignment: MainAxisAlignment.end,
+                            children: [
+                              Icon(
+                                getIcon(fileTransferProgressModel.isSender),
+                                color: Colors.grey.shade300,
+                                size: 20.0,
+                              ),
+                              Text(
+                                "${fileTransferProgressModel.fileIndex} / ${fileTransferProgressModel.totalFiles}",
+                                style: TextStyle(
+                                  color: Colors.grey.shade300,
+                                  fontSize: 16.0,
+                                ),
+                              ),
+                            ]
                           ),
                         ],
                       ),
@@ -90,5 +99,9 @@ class _FileTransferProgressBarState extends State<FileTransferProgressBar> {
         ),
       ),
     );
+  }
+
+  IconData? getIcon(bool isSender) {
+    return isSender ? Icons.upload : Icons.download;
   }
 }

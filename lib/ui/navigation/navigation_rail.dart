@@ -1,14 +1,27 @@
 import 'package:flutter/material.dart';
+import 'package:go_router/go_router.dart';
 
 class NavRail extends StatelessWidget {
+  final int selectedIndex;
+
   const NavRail({
     super.key,
     required this.selectedIndex,
-    required this.onDestinationSelected,
   });
 
-  final int selectedIndex;
-  final ValueChanged<int> onDestinationSelected;
+  void _onDestinationSelected(BuildContext context, int index) {
+    switch (index) {
+      case 0:
+        context.go('/home');
+        break;
+      case 1:
+        context.go('/devices');
+        break;
+      case 2:
+        context.go('/settings');
+        break;
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -19,11 +32,11 @@ class NavRail extends StatelessWidget {
       leading: const Padding(
         padding: EdgeInsets.symmetric(horizontal: 8, vertical: 50),
         child: Image(
-            image: AssetImage('assets/icons/logo-nobg-white.png'),
-            width: 80,
+          image: AssetImage('assets/icons/logo-nobg-white.png'),
+          width: 80,
         ),
       ),
-      onDestinationSelected: onDestinationSelected,
+      onDestinationSelected: (index) => _onDestinationSelected(context, index),
       labelType: NavigationRailLabelType.all,
       destinations: const [
         NavigationRailDestination(

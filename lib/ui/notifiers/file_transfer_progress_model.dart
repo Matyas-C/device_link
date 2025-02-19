@@ -4,10 +4,13 @@ class FileTransferProgressModel extends ChangeNotifier {
   String _filename = "";
   int _fileIndex = 1;
   int _fileSize = 0;
-  int _totalFiles = 45;
+  int _totalFiles = 0;
   String _bytesTransferredFormatted = "";
   String _fileSizeFormatted = "";
   double _progress = 0.0;
+  bool _isVisible = false;
+  bool _isSender = false;
+  String _dataUnits = "";
 
   String get filename => _filename;
   int get fileIndex => _fileIndex;
@@ -15,12 +18,25 @@ class FileTransferProgressModel extends ChangeNotifier {
   String get bytesTransferredFormatted => _bytesTransferredFormatted;
   String get fileSizeFormatted => _fileSizeFormatted;
   double get progress => _progress;
+  bool get isVisible => _isVisible;
+  bool get isSender => _isSender;
+
+  void show() {
+    _isVisible = true;
+    notifyListeners();
+  }
+
+  void hide() {
+    _isVisible = false;
+    notifyListeners();
+  }
 
   Future<void> setFileInfo({
     required String filename,
     required int fileIndex,
     required int fileSize,
     required int totalFiles,
+    required bool isSender,
   }) async {
 
     String formatFileSize(int fileSize) {
@@ -35,11 +51,25 @@ class FileTransferProgressModel extends ChangeNotifier {
       }
     }
 
+    String getDataUnits(int fileSize) {
+      if (fileSize < 1024) {
+        return "B";
+      } else if (fileSize < 1024 * 1024) {
+        return "KB";
+      } else if (fileSize < 1024 * 1024 * 1024) {
+        return "MB";
+      } else {
+        return "GB";
+      }
+    }
+
     _filename = filename;
     _fileIndex = fileIndex + 1;
     _fileSize = fileSize;
     _fileSizeFormatted = formatFileSize(fileSize);
     _totalFiles = totalFiles;
+    _dataUnits = getDataUnits(fileSize);
+    _isSender = isSender;
     notifyListeners();
   }
 
@@ -48,14 +78,17 @@ class FileTransferProgressModel extends ChangeNotifier {
   }) {
 
     String formatBytes(int bytes) {
-      if (_fileSizeFormatted.endsWith("B")) {
-        return "$bytes";
-      } else if (_fileSizeFormatted.endsWith("KB")) {
-        return (bytes / 1024).toStringAsFixed(2);
-      } else if (_fileSizeFormatted.endsWith("MB")) {
-        return (bytes / (1024 * 1024)).toStringAsFixed(2);
-      } else {
-        return (bytes / (1024 * 1024 * 1024)).toStringAsFixed(2);
+      switch (_dataUnits) {
+        case "B":
+          return "$bytes";
+        case "KB":
+          return (bytes / 1024).toStringAsFixed(2);
+        case "MB":
+          return (bytes / (1024 * 1024)).toStringAsFixed(2);
+        case "GB":
+          return (bytes / (1024 * 1024 * 1024)).toStringAsFixed(2);
+        default:
+          return "$bytes COOOO";
       }
     }
 

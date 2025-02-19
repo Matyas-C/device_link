@@ -1,20 +1,33 @@
 import 'package:flutter/material.dart';
+import 'package:go_router/go_router.dart';
 
 class NavBar extends StatelessWidget {
+  final int selectedIndex;
+
   const NavBar({
     super.key,
-    required this.currentIndex,
-    required this.onDestinationSelected,
+    required this.selectedIndex,
   });
 
-  final int currentIndex;
-  final ValueChanged<int> onDestinationSelected;
+  void _onTap(BuildContext context, int index) {
+    switch (index) {
+      case 0:
+        context.go('/home');
+        break;
+      case 1:
+        context.go('/devices');
+        break;
+      case 2:
+        context.go('/settings');
+        break;
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
     return NavigationBar(
-      selectedIndex: currentIndex,
-      onDestinationSelected: onDestinationSelected,
+      selectedIndex: selectedIndex,
+      onDestinationSelected: (index) => _onTap(context, index),
       backgroundColor: Colors.black45,
       height: 100,
       destinations: const [
