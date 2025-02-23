@@ -19,7 +19,11 @@ class SettingsBox {
       _settingsBox.put('name', 'Zařízení');
     }
     if (!_settingsBox.containsKey('default_file_path')) {
-      _settingsBox.put('default_file_path', (await getDownloadsDirectory())!.path);
+      _settingsBox.put(
+          'default_file_path', (await getDownloadsDirectory())!.path);
+    }
+    if (!_settingsBox.containsKey('auto_send_clipboard')) {
+      _settingsBox.put('auto_send_clipboard', false);
     }
   }
 }

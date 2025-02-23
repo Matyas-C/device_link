@@ -5,6 +5,7 @@ import 'util/window_util.dart';
 import 'database.dart';
 import 'udp_discovery.dart';
 import 'package:device_link/ui/router.dart';
+import 'package:device_link/test/clipboard.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();

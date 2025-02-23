@@ -13,6 +13,7 @@ import 'package:file_picker/file_picker.dart';
 import 'dart:typed_data';
 import 'package:device_link/ui/overlays/overlay_manager.dart';
 import 'package:device_link/ui/notifiers/file_transfer_progress_model.dart';
+import 'package:device_link/clipboard_manager.dart';
 
 class WebRtcConnection {
   static final WebRtcConnection _instance = WebRtcConnection._internal();
@@ -27,6 +28,7 @@ class WebRtcConnection {
   late RTCDataChannel _statusDataChannel;
   late RTCDataChannel _infoDataChannel;
   late RTCDataChannel _fileDataChannel;
+  late RTCDataChannel _clipboardDataChannel;
   late RTCSessionDescription _offer;
   late RTCSessionDescription _answer;
   late File _selectedFile;
@@ -37,6 +39,7 @@ class WebRtcConnection {
   late int _fileIndex;
   late int _fileCount;
   late int _fileSize;
+  final ClipboardManager _clipboardManager = ClipboardManager();
   final  FileTransferProgressModel _progressBarModel = GlobalOverlayManager().fileTransferProgressModel;
   Completer<void> _connectionCompleter = Completer<void>();
   Completer<void> _canSendChunk = Completer<void>();
@@ -47,7 +50,7 @@ class WebRtcConnection {
 
   Future<void> initialize() async {
     _peerConnection = await createPeerConnection({});
-    int channelCount = 3;
+    int channelCount = 4;
     int channelsReady = 0;
 
     _peerConnection.onDataChannel = (RTCDataChannel dataChannel) {
@@ -65,6 +68,9 @@ class WebRtcConnection {
           _fileDataChannel = dataChannel;
           channelsReady++;
           break;
+        case 'clipboardChannel':
+          _clipboardDataChannel = dataChannel;
+          channelsReady++;
         default:
           print('Unknown data channel');
           break;
@@ -83,6 +89,9 @@ class WebRtcConnection {
 
     _fileDataChannel = await _peerConnection.createDataChannel('fileChannel', RTCDataChannelInit());
     print('File channel created');
+
+    _clipboardDataChannel = await _peerConnection.createDataChannel('clipboardChannel', RTCDataChannelInit());
+    print('Clipboard channel created');
 
     _statusDataChannel = await _peerConnection.createDataChannel('statusChannel', RTCDataChannelInit());
     print('Status channel created');
@@ -190,6 +199,19 @@ class WebRtcConnection {
       };
 
       //TODO: lepsi implementace posilani/prijmani souboru, tahle je moc pomala (peak asi 4 MB/s)
+    };
+
+    _clipboardDataChannel.onDataChannelState = (RTCDataChannelState state) {
+      if (state == RTCDataChannelState.RTCDataChannelOpen) {
+        print('Clipboard channel open');
+
+        _clipboardDataChannel.onMessage = (RTCDataChannelMessage message) async {
+          Map<String, dynamic>  decodedMessage = json.decode(message.text);
+          print('Clipboard data received: ${decodedMessage['type']}');
+
+          await _clipboardManager.setClipboardData(decodedMessage);
+        };
+      }
     };
 
     //status channel - mel by se inicializovat jako posledni
@@ -395,6 +417,18 @@ class WebRtcConnection {
       totalFiles: _fileCount,
       isSender: false,
     );
+  }
+
+
+  //TODO: opravit i pro obrazky
+  //TODO: chunking pro vetsi soubory
+  Future<void> sendClipboardData() async {
+    Map? clipboardData = await _clipboardManager.getClipboardData();
+    if (clipboardData == null) return;
+    _clipboardDataChannel.send(RTCDataChannelMessage(json.encode(clipboardData)));
+    print('Clipboard data sent : ${clipboardData['type']}');
+    List<dynamic> data = clipboardData['data'];
+    print("length: ${data.length}");
   }
 
   Future<void> sendDisconnectRequest() async {

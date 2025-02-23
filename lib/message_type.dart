@@ -26,3 +26,8 @@ enum InfoChannelMessageType {
   fileInfoArrivedOk,
   fileArrivedOk,
 }
+
+enum ClipboardMessageType {
+  clipboardText,
+  clipboardImg,
+}

@@ -79,8 +79,8 @@ class _HomePageDeviceConnectedState extends State<HomePageDeviceConnected> {
                 ),
                 const SizedBox(height: 10),
                 InkWell(
-                  onTap: () {
-                    // TODO: posilani schranky
+                  onTap: () async {
+                    await WebRtcConnection.instance.sendClipboardData();
                   },
                   borderRadius: BorderRadius.circular(8),
                   child: Container(
