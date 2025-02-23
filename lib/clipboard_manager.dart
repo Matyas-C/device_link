@@ -63,10 +63,12 @@ class ClipboardManager {
     final clipboard = SystemClipboard.instance;
     if (clipboard == null) return;
 
-    final Uint8List data = Uint8List.fromList(List<int>.from(dataAnnotated['data']));
+    final Uint8List data = Uint8List.fromList((dataAnnotated['data'] as List).cast<int>());
     final ClipboardMessageType type = ClipboardMessageType.values.byName(dataAnnotated['type']);
     print('Setting clipboard data: $type');
     final item = DataWriterItem();
+    print("Clipboard Image Data Length: ${data.length}");
+    print("First 10 Bytes: ${data.sublist(0, 10)}");
 
     switch (type) {
       case ClipboardMessageType.clipboardImg:
@@ -80,7 +82,8 @@ class ClipboardManager {
       default:
         return;
     }
+
+    //TODO: proc super_clipboard haze java error kdyz jsou data nad 64KiB?
     await clipboard.write([item]);
   }
-
 }

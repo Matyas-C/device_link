@@ -197,22 +197,38 @@ class WebRtcConnection {
           GlobalOverlayManager().removeProgressBar();
         }
       };
-
-      //TODO: lepsi implementace posilani/prijmani souboru, tahle je moc pomala (peak asi 4 MB/s)
     };
 
     _clipboardDataChannel.onDataChannelState = (RTCDataChannelState state) {
       if (state == RTCDataChannelState.RTCDataChannelOpen) {
         print('Clipboard channel open');
 
-        _clipboardDataChannel.onMessage = (RTCDataChannelMessage message) async {
-          Map<String, dynamic>  decodedMessage = json.decode(message.text);
-          print('Clipboard data received: ${decodedMessage['type']}');
+        BytesBuilder clipboardDataBuilder = BytesBuilder();
 
-          await _clipboardManager.setClipboardData(decodedMessage);
+        _clipboardDataChannel.onMessage = (RTCDataChannelMessage message) async {
+          Map<String, dynamic> decodedMessage = json.decode(message.text);
+
+          Uint8List chunkData = Uint8List.fromList((decodedMessage['data'] as List).cast<int>());
+          clipboardDataBuilder.add(chunkData);
+          bool isFinalChunk = decodedMessage['isFinalChunk'];
+          print('last chunk: $isFinalChunk');
+
+          if (decodedMessage['isFinalChunk']) {
+            Uint8List completeClipboardData = clipboardDataBuilder.toBytes();
+
+            Map<String, dynamic> clipboardData = {
+              'type': decodedMessage['type'],
+              'data': completeClipboardData,
+            };
+
+            await _clipboardManager.setClipboardData(clipboardData);
+            print('Clipboard data received: ${decodedMessage['type']}');
+            clipboardDataBuilder.clear();
+          }
         };
       }
     };
+
 
     //status channel - mel by se inicializovat jako posledni
     _statusDataChannel.onDataChannelState = (RTCDataChannelState state) {
@@ -319,6 +335,7 @@ class WebRtcConnection {
     }
   }
 
+  //TODO: lepsi implementace posilani/prijmani souboru, tahle je moc pomala (peak asi 4 MB/s)
   Future<void> transferFile({
     required File file,
     required int fileSize,
@@ -419,17 +436,33 @@ class WebRtcConnection {
     );
   }
 
-
-  //TODO: opravit i pro obrazky
-  //TODO: chunking pro vetsi soubory
   Future<void> sendClipboardData() async {
     Map? clipboardData = await _clipboardManager.getClipboardData();
     if (clipboardData == null) return;
-    _clipboardDataChannel.send(RTCDataChannelMessage(json.encode(clipboardData)));
-    print('Clipboard data sent : ${clipboardData['type']}');
-    List<dynamic> data = clipboardData['data'];
-    print("length: ${data.length}");
+
+    const int targetChunkSize = 16 * 1024;
+    final Uint8List clipboardDataBytes = clipboardData['data'];
+    final int totalSize = clipboardDataBytes.length;
+    final String messageType = clipboardData['type'];
+
+    int bytesSent = 0;
+
+    while (bytesSent < totalSize) {
+      //chunk bude mensi nez 16 KiB pokud uz nezbyva dost dat
+      int endIndex = (bytesSent + targetChunkSize > totalSize) ? totalSize : (bytesSent + targetChunkSize);
+      Uint8List chunkData = clipboardDataBytes.sublist(bytesSent, endIndex);
+
+      Map<String, dynamic> clipboardDataChunk = {
+        'type': messageType,
+        'data': chunkData,
+        'isFinalChunk': endIndex == totalSize //true pokud je to posledni chunk
+      };
+
+      _clipboardDataChannel.send(RTCDataChannelMessage(json.encode(clipboardDataChunk)));
+      bytesSent += chunkData.length;
+    }
   }
+
 
   Future<void> sendDisconnectRequest() async {
     await waitForConnectionComplete();
