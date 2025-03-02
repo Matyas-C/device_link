@@ -40,11 +40,14 @@ class WebRtcConnection {
   late int _fileCount;
   late int _fileSize;
   final ClipboardManager _clipboardManager = ClipboardManager();
+  final ConnectionManager _connectionManager = ConnectionManager();
   final  FileTransferProgressModel _progressBarModel = GlobalOverlayManager().fileTransferProgressModel;
   Completer<void> _connectionCompleter = Completer<void>();
   Completer<void> _canSendChunk = Completer<void>();
   Completer<void> _fileInfoReceived = Completer<void>();
   Completer<void> _fileReceived = Completer<void>();
+
+  ConnectionManager get connectionManager => _connectionManager;
 
   Future<void> Function(ConnectedDevice) onDeviceConnected = (device) async {};
 
@@ -78,6 +81,12 @@ class WebRtcConnection {
 
       if (channelsReady == channelCount) {
         _handleDataChannels();
+      }
+    };
+
+    _peerConnection.onConnectionState = (state) {
+      if (state == RTCPeerConnectionState.RTCPeerConnectionStateFailed) {
+        _connectionManager.endPeerConnection(initiator: false);
       }
     };
   }
@@ -245,7 +254,7 @@ class WebRtcConnection {
               break;
 
             case ConnectionState.disconnected:
-              await endPeerConnection(initiator: false);
+              await _connectionManager.endPeerConnection(initiator: false);
               break;
 
             default:

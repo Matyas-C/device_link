@@ -48,7 +48,7 @@ class _DevicesPageState extends State<DevicesPage> {
           children: [
             const Text(
               "Toto zařízení",
-              style: TextStyle(fontSize: 24),
+              style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold),
             ),
             Container(
               margin: const EdgeInsets.all(8),
@@ -82,7 +82,7 @@ class _DevicesPageState extends State<DevicesPage> {
               children: [
                 const Text(
                   "Nalezená zařízení",
-                  style: TextStyle(fontSize: 24),
+                  style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold),
                 ),
                 IconButton(
                   onPressed: () {
@@ -102,7 +102,7 @@ class _DevicesPageState extends State<DevicesPage> {
                       }
                     });
                   },
-                  icon: const Icon(Icons.repeat),
+                  icon: Icon(Icons.repeat, size: 30, color: Colors.grey.shade400),
                 )
               ],
             ),

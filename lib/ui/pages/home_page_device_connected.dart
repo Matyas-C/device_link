@@ -25,6 +25,7 @@ class HomePageDeviceConnected extends StatefulWidget {
 }
 
 class _HomePageDeviceConnectedState extends State<HomePageDeviceConnected> {
+  final ConnectionManager _connectionManager = WebRtcConnection.instance.connectionManager;
   late String deviceName;
   bool autoSendClipboard = false;
   bool progressBarVisible = true;
@@ -113,7 +114,7 @@ class _HomePageDeviceConnectedState extends State<HomePageDeviceConnected> {
                       },
                     );
                     if (result == true) {
-                      await endPeerConnection(initiator: true);
+                      await _connectionManager.endPeerConnection(initiator: true);
                       if (context.mounted) {
                         context.go('/devices');
                       }
