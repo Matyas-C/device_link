@@ -8,6 +8,8 @@ import 'package:device_link/ui/other/device_name_text_controller.dart';
 import 'package:device_link/network_connectivity_status.dart';
 import 'package:provider/provider.dart';
 import 'package:device_link/ui/snackbars/not_connected_to_network_bar.dart';
+import 'package:device_link/ui/notifiers/searching_model.dart';
+import 'package:loading_animation_widget/loading_animation_widget.dart';
 
 class DevicesPage extends StatefulWidget {
   const DevicesPage({super.key});
@@ -19,6 +21,7 @@ class DevicesPage extends StatefulWidget {
 class _DevicesPageState extends State<DevicesPage> {
   late NetworkConnectivityStatus _connectivityStatus;
   late UdpDiscovery _udpDiscovery;
+  late SearchingModel _searchingNotifier;
 
   @override
   void initState() {
@@ -32,6 +35,7 @@ class _DevicesPageState extends State<DevicesPage> {
 
     _connectivityStatus = Provider.of<NetworkConnectivityStatus>(context, listen: false);
     _udpDiscovery = Provider.of<UdpDiscovery>(context, listen: false);
+    _searchingNotifier = _udpDiscovery.searchingModel;
   }
 
   @override
@@ -117,6 +121,40 @@ class _DevicesPageState extends State<DevicesPage> {
                 },
               ),
             ),
+            const SizedBox(height: 50),
+            ListenableBuilder(
+              listenable: _searchingNotifier,
+              builder: (context, child) {
+                return Column(
+                  children: [
+                    Visibility(
+                      visible: DiscoveredDevices.list.isEmpty && !_searchingNotifier.isSearching,
+                      child: Text(
+                        "Žádná zařízení nebyla nalezena",
+                        style: TextStyle(fontSize: 18, color: Colors.grey.shade400),
+                      ),
+                    ),
+                    Visibility(
+                      visible: _searchingNotifier.isSearching,
+                      child: Row(
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        children: [
+                          Text(
+                            "Hledání",
+                            style: TextStyle(fontSize: 18, color: Colors.grey.shade400),
+                          ),
+                          const SizedBox(width: 20),
+                          LoadingAnimationWidget.progressiveDots(
+                            color: Colors.grey.shade400,
+                            size: 30,
+                          )
+                        ],
+                      )
+                    ),
+                  ],
+                );
+              },
+            )
           ],
         ),
       ),

@@ -3,6 +3,7 @@ import 'dart:convert';
 import 'dart:io';
 import 'package:device_link/ui/dialog/connecting_dialog.dart';
 import 'package:device_link/ui/dialog/response_dialog.dart';
+import 'package:device_link/ui/notifiers/searching_model.dart';
 import 'package:device_link/ui/router.dart';
 import 'package:network_info_plus/network_info_plus.dart';
 import 'package:device_link/discovered_devices_list.dart';
@@ -14,6 +15,7 @@ import 'message_type.dart';
 import 'signaling_server.dart';
 import 'signaling_client.dart';
 import 'package:flutter/material.dart';
+import 'package:device_link/ui/notifiers/searching_model.dart';
 
 class UdpDiscovery {
   static final UdpDiscovery _instance = UdpDiscovery._internal();
@@ -27,12 +29,14 @@ class UdpDiscovery {
   late final RawDatagramSocket socket;
   final SignalingServer _signalingServer = SignalingServer();
   final SignalingClient _signalingClient = SignalingClient();
+  final SearchingModel _searchingModel = SearchingModel();
 
   Function(OtherDevice) onDeviceDiscovered = (device) {};
   late Future<bool?> Function(String uuid, String name, String deviceType) onConnectionRequest;
 
   final Completer _initialized = Completer<void>();
   Completer get initialized => _initialized;
+  SearchingModel get searchingModel => _searchingModel;
 
   Future<void> initialize() async {
     uuid = _settingsBox.get('uuid');
@@ -55,9 +59,13 @@ class UdpDiscovery {
   }
 
   Future<void> sendDiscoveryBroadcastBatch(int times) async {
+    searchingModel.startSearching();
     for (int i = 0; i < times; i++) {
       await _sendDiscoveryBroadcast();
       await Future.delayed(const Duration(milliseconds: 500));
+      if (i == times - 1) {
+        searchingModel.stopSearching();
+      }
     }
   }
 
