@@ -1,11 +1,12 @@
-import 'dart:async';
 import 'dart:io';
 import 'package:flutter/material.dart';
 import 'util/window_util.dart';
 import 'database.dart';
 import 'udp_discovery.dart';
 import 'package:device_link/ui/router.dart';
-import 'package:device_link/test/clipboard.dart';
+import 'package:connectivity_plus/connectivity_plus.dart';
+import 'package:device_link/network_connectivity_status.dart';
+import 'package:provider/provider.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -15,15 +16,34 @@ void main() async {
   settingsBox.initData();
 
   final udpDiscovery = UdpDiscovery();
-  await udpDiscovery.initialize();
 
   if (Platform.isWindows || Platform.isLinux || Platform.isMacOS) {
     await setMinSize(400, 500);
   }
 
-  Timer.periodic(const Duration(seconds: 1), (Timer t) => udpDiscovery.sendDiscoveryBroadcast());
+  bool isNetworkConnected;
+  final List<ConnectivityResult> conResult = await (Connectivity().checkConnectivity());
+  if (conResult.contains(ConnectivityResult.wifi) || conResult.contains(ConnectivityResult.ethernet)) {
+    await udpDiscovery.initialize();
+    udpDiscovery.sendDiscoveryBroadcastBatch(30);
+    isNetworkConnected = true;
+  } else {
+    isNetworkConnected = false;
+  }
 
-  runApp(const PhoneConnect());
+
+  runApp(
+    MultiProvider(
+      providers: [
+        ChangeNotifierProvider<NetworkConnectivityStatus>(
+          create: (_) => NetworkConnectivityStatus(udpDiscovery, isNetworkConnected),
+        ),
+        Provider<UdpDiscovery>.value(value: udpDiscovery),
+      ],
+      child: const PhoneConnect(),
+    ),
+  );
+
 }
 
 class PhoneConnect extends StatelessWidget {

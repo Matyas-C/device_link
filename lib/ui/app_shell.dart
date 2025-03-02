@@ -26,7 +26,13 @@ class AppShell extends StatelessWidget {
     return Row(
       children: [
         NavRail(selectedIndex: currentIndex),
-        Expanded(child: child),
+        Expanded(
+          child: ScaffoldMessenger(
+            child: Scaffold(
+              body: child,
+            ),
+          ),
+        ),
       ],
     );
   }

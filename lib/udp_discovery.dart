@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'dart:convert';
 import 'dart:io';
 import 'package:device_link/ui/dialog/connecting_dialog.dart';
@@ -30,23 +31,34 @@ class UdpDiscovery {
   Function(OtherDevice) onDeviceDiscovered = (device) {};
   late Future<bool?> Function(String uuid, String name, String deviceType) onConnectionRequest;
 
+  final Completer _initialized = Completer<void>();
+  Completer get initialized => _initialized;
+
   Future<void> initialize() async {
     uuid = _settingsBox.get('uuid');
     deviceName = _settingsBox.get('name');
     broadcastAddress = await NetworkInfo().getWifiBroadcast();
     socket = await RawDatagramSocket.bind(InternetAddress.anyIPv4, 8081);
+    socket.broadcastEnabled = true;
     await startListener(socket);
+    _initialized.complete();
   }
 
-  Future<void> sendDiscoveryBroadcast() async {
+  Future<void> _sendDiscoveryBroadcast() async {
     final Map<String, dynamic> discoveryMessage = {
       'type': MessageType.dlDiscover.name,
       'uuid': uuid,
       'version': '1.0',
     };
 
-    socket.broadcastEnabled = true;
-    socket.send(utf8.encode(json.encode(discoveryMessage)), InternetAddress(broadcastAddress!), 8081); //hazi error kdyz neni internet, pridat nejakej null check
+    socket.send(utf8.encode(json.encode(discoveryMessage)), InternetAddress(broadcastAddress!), 8081);
+  }
+
+  Future<void> sendDiscoveryBroadcastBatch(int times) async {
+    for (int i = 0; i < times; i++) {
+      await _sendDiscoveryBroadcast();
+      await Future.delayed(const Duration(milliseconds: 500));
+    }
   }
 
 

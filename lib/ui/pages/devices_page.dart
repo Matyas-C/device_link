@@ -5,6 +5,9 @@ import '../tiles/discovered_device_tile.dart';
 import 'package:device_link/util/device_type.dart';
 import 'package:device_link/util/device_icon.dart';
 import 'package:device_link/ui/other/device_name_text_controller.dart';
+import 'package:device_link/network_connectivity_status.dart';
+import 'package:provider/provider.dart';
+import 'package:device_link/ui/snackbars/not_connected_to_network_bar.dart';
 
 class DevicesPage extends StatefulWidget {
   const DevicesPage({super.key});
@@ -14,6 +17,9 @@ class DevicesPage extends StatefulWidget {
 }
 
 class _DevicesPageState extends State<DevicesPage> {
+  late NetworkConnectivityStatus _connectivityStatus;
+  late UdpDiscovery _udpDiscovery;
+
   @override
   void initState() {
     super.initState();
@@ -23,6 +29,9 @@ class _DevicesPageState extends State<DevicesPage> {
         DiscoveredDevices.addDevice(device);
       });
     };
+
+    _connectivityStatus = Provider.of<NetworkConnectivityStatus>(context, listen: false);
+    _udpDiscovery = Provider.of<UdpDiscovery>(context, listen: false);
   }
 
   @override
@@ -74,7 +83,19 @@ class _DevicesPageState extends State<DevicesPage> {
                 IconButton(
                   onPressed: () {
                     setState(() {
-                      DiscoveredDevices.clearDevices();
+                      if (_connectivityStatus.isConnectedToNetwork) {
+                        _udpDiscovery.sendDiscoveryBroadcastBatch(30);
+                        DiscoveredDevices.clearDevices();
+                      } else {
+                        ScaffoldMessenger.of(context).showSnackBar(
+                          const SnackBar(
+                            content: NotConnectedToNetworkBar(),
+                            backgroundColor: Colors.transparent,
+                            behavior: SnackBarBehavior.fixed,
+                            duration: Duration(seconds: 3),
+                          ),
+                        );
+                      }
                     });
                   },
                   icon: const Icon(Icons.repeat),

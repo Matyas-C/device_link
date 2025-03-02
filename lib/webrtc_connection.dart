@@ -359,7 +359,7 @@ class WebRtcConnection {
     await _fileInfoReceived.future;
 
     int totalBytesSent = 0;
-    const int targetChunkSize = 256 * 1024; // 256 KiB je maximalni velikost RTC zpravy
+    const int targetChunkSize = 256 * 1024; // 256 KiB je maximalni velikost RTC zpravy TODO: jaka hodnota je nejlepsi?
 
     if (!_canSendChunk.isCompleted) {
       _canSendChunk.complete();

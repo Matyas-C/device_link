@@ -66,7 +66,7 @@ class ClipboardManager {
     final Uint8List data = Uint8List.fromList((dataAnnotated['data'] as List).cast<int>());
     final ClipboardMessageType type = ClipboardMessageType.values.byName(dataAnnotated['type']);
     print('Setting clipboard data: $type');
-    final item = DataWriterItem();
+    final item = DataWriterItem(suggestedName: 'clipboardItem');
     print("Clipboard Image Data Length: ${data.length}");
     print("First 10 Bytes: ${data.sublist(0, 10)}");
 
@@ -77,13 +77,12 @@ class ClipboardManager {
         break;
       case ClipboardMessageType.clipboardText:
         item.add(Formats.plainText(utf8.decode(data)));
-        print('Text added to clipboard');
+        print('Text added to clipboard');;
         break;
       default:
         return;
     }
-
-    //TODO: proc super_clipboard haze java error kdyz jsou data nad 64KiB?
+    //TODO: proc super_clipboard haze java error kdyz jsou data nad cca 64KiB?
     await clipboard.write([item]);
   }
 }
