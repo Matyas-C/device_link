@@ -54,6 +54,7 @@ class PhoneConnect extends StatelessWidget {
     return MaterialApp.router(
       title: 'DeviceLink',
       darkTheme: ThemeData(
+        fontFamily: 'Geist',
         useMaterial3: true,
         brightness: Brightness.dark,
         colorSchemeSeed: const Color.fromRGBO(0, 171, 247, 1),

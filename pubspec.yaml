@@ -36,6 +36,13 @@ flutter:
   assets:
     - assets/
     - assets/icons/
+  fonts:
+    - family: Geist
+      fonts:
+        - asset: assets/fonts/Geist-VariableFont_wght.ttf
+    - family: GeistMono
+      fonts:
+        - asset: assets/fonts/GeistMono-VariableFont_wght.ttf
 
 flutter_launcher_icons:
   windows:
