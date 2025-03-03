@@ -6,6 +6,7 @@ import 'package:device_link/util/device_type.dart';
 import 'package:flutter_webrtc/flutter_webrtc.dart';
 import 'package:device_link/signaling_client.dart';
 import 'package:device_link/message_type.dart';
+import 'package:go_router/go_router.dart';
 import 'package:hive_ce_flutter/hive_flutter.dart';
 import 'package:hive_ce/hive.dart';
 import 'connected_device.dart';
@@ -14,6 +15,7 @@ import 'dart:typed_data';
 import 'package:device_link/ui/overlays/overlay_manager.dart';
 import 'package:device_link/ui/notifiers/file_transfer_progress_model.dart';
 import 'package:device_link/clipboard_manager.dart';
+import 'package:device_link/ui/router.dart';
 
 class WebRtcConnection {
   static final WebRtcConnection _instance = WebRtcConnection._internal();
@@ -252,6 +254,9 @@ class WebRtcConnection {
 
             case ConnectionState.disconnected:
               await _connectionManager.endPeerConnection(initiator: false);
+              if (navigatorKey.currentContext != null) {
+                navigatorKey.currentContext!.go('/devices');
+              }
               break;
 
             default:

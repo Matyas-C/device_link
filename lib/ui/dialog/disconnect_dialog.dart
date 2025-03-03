@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:go_router/go_router.dart';
 
 class DisconnectDialog extends StatelessWidget {
   const DisconnectDialog({super.key});
@@ -17,6 +18,7 @@ class DisconnectDialog extends StatelessWidget {
             TextButton(
               onPressed: () {
                 Navigator.of(context).pop(true);
+                context.go('/devices');
               },
               child: const Text('Ano'),
             ),

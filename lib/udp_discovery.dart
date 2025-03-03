@@ -15,7 +15,6 @@ import 'message_type.dart';
 import 'signaling_server.dart';
 import 'signaling_client.dart';
 import 'package:flutter/material.dart';
-import 'package:device_link/ui/notifiers/searching_model.dart';
 
 class UdpDiscovery {
   static final UdpDiscovery _instance = UdpDiscovery._internal();
