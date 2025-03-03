@@ -16,14 +16,7 @@ class HomePage extends StatefulWidget {
 }
 
 class _HomePageState extends State<HomePage> {
-  @override
-  void initState() {
-    super.initState();
-    WebRtcConnection.instance.onDeviceConnected = (device) async{
-      ConnectingDialog.closeDialog();
-      return;
-    };
-  }
+
   @override
   Widget build(BuildContext context) {
     if (ConnectedDevice.instance != null) {

@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:device_link/ui/dialog/empty_loading_dialog.dart';
 
 class ResponseDialog extends StatelessWidget {
   final String uuid;
@@ -40,6 +41,11 @@ class ResponseDialog extends StatelessWidget {
                 TextButton(
                   onPressed: () {
                     Navigator.pop(context, true);
+                    showDialog(
+                        context: context,
+                        builder: (BuildContext context) {
+                          return const EmptyLoadingDialog();
+                        });
                   },
                   child: const Text(
                     "Přijmout",

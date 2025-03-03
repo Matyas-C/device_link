@@ -22,6 +22,7 @@ class AppShell extends StatelessWidget {
     );
   }
 
+  //TODO: Jak se zbavit unhandled click zvuku na windows?
   Widget _buildWideScreenLayout() {
     return Row(
       children: [

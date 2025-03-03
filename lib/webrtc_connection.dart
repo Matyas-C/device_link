@@ -49,8 +49,6 @@ class WebRtcConnection {
 
   ConnectionManager get connectionManager => _connectionManager;
 
-  Future<void> Function(ConnectedDevice) onDeviceConnected = (device) async {};
-
   Future<void> initialize() async {
     _peerConnection = await createPeerConnection({});
     int channelCount = 4;
@@ -127,7 +125,6 @@ class WebRtcConnection {
                 name: decodedMessage['deviceName'],
                 deviceType: decodedMessage['deviceType'],
               );
-              await onDeviceConnected(connectedDevice);
               break;
             case InfoChannelMessageType.chunkArrivedOk:
               //print('Chunk arrived ok');
@@ -249,7 +246,7 @@ class WebRtcConnection {
 
           switch (connectionState) {
             case ConnectionState.connected:
-              print('signaling process finished');
+              print('signaling process finished, peer connection established');
               _connectionCompleter.complete();
               break;
 

@@ -1,5 +1,7 @@
 import 'package:device_link/udp_discovery.dart';
 import 'package:flutter/material.dart';
+import 'package:loading_animation_widget/loading_animation_widget.dart';
+import 'package:device_link/ui/dialog/empty_loading_dialog.dart';
 
 class ConnectingDialog extends StatelessWidget {
   final String deviceIp;
@@ -11,9 +13,16 @@ class ConnectingDialog extends StatelessWidget {
 
   static final GlobalKey<NavigatorState> navigatorKey = GlobalKey<NavigatorState>();
 
-  static void closeDialog() {
+  static void closeDialog(bool cancelled) {
     if (navigatorKey.currentContext != null) {
       Navigator.pop(navigatorKey.currentContext!);
+    }
+    if (!cancelled) {
+      showDialog(
+          context: navigatorKey.currentContext!,
+          builder: (BuildContext context) {
+            return const EmptyLoadingDialog();
+          });
     }
   }
 
@@ -27,9 +36,11 @@ class ConnectingDialog extends StatelessWidget {
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
             const Text(
-              "Připojování...",
+              "Připojování",
               style: TextStyle(fontSize: 24),
             ),
+            const SizedBox(height: 30),
+            LoadingAnimationWidget.threeRotatingDots(color: Colors.white, size: 70),
             const SizedBox(height: 30),
             TextButton(
               onPressed: () {

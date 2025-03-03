@@ -172,11 +172,12 @@ class UdpDiscovery {
 
             case MessageType.dlConnectionAccept:
               print('Connection accepted by peer: ${decodedMessage['uuid']}');
+              ConnectingDialog.closeDialog(false);
               await _signalingClient.connect(decodedMessage['wsAddress']);
               break;
 
             case MessageType.dlConnectionRefuse:
-              ConnectingDialog.closeDialog();
+              ConnectingDialog.closeDialog(true);
               print('Connection refused by peer');
               break;
 
