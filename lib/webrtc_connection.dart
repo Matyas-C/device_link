@@ -16,6 +16,7 @@ import 'package:device_link/ui/overlays/overlay_manager.dart';
 import 'package:device_link/ui/notifiers/file_transfer_progress_model.dart';
 import 'package:device_link/clipboard_manager.dart';
 import 'package:device_link/ui/router.dart';
+import 'package:device_link/database/last_connected_device.dart';
 
 class WebRtcConnection {
   static final WebRtcConnection _instance = WebRtcConnection._internal();
@@ -41,6 +42,8 @@ class WebRtcConnection {
   late int _fileIndex;
   late int _fileCount;
   late int _fileSize;
+  late ConnectedDevice _connectedDevice;
+  bool _isConnected = false;
   final ClipboardManager _clipboardManager = ClipboardManager();
   final ConnectionManager _connectionManager = ConnectionManager();
   final  FileTransferProgressModel _progressBarModel = GlobalOverlayManager().fileTransferProgressModel;
@@ -48,8 +51,10 @@ class WebRtcConnection {
   Completer<void> _canSendChunk = Completer<void>();
   Completer<void> _fileInfoReceived = Completer<void>();
   Completer<void> _fileReceived = Completer<void>();
+  Completer<void> _deviceInfoReceived = Completer<void>();
 
   ConnectionManager get connectionManager => _connectionManager;
+  bool get isConnected => _isConnected;
 
   Future<void> initialize() async {
     _peerConnection = await createPeerConnection({});
@@ -86,9 +91,19 @@ class WebRtcConnection {
 
     _peerConnection.onConnectionState = (state) {
       if (state == RTCPeerConnectionState.RTCPeerConnectionStateFailed) {
-        _connectionManager.endPeerConnection(initiator: false);
+        _connectionManager.endPeerConnection(disconnectInitiator: false);
       }
     };
+  }
+
+  Future<void> setLastDevice({required bool connectionInitiator}) async {
+    await _connectionCompleter.future;
+    await _deviceInfoReceived.future;
+    await LastConnectedDevice.save(
+        uuid: _connectedDevice.uuid,
+        lastKnownName: _connectedDevice.name,
+        initiateConnection: connectionInitiator
+    );
   }
 
   //vytvoreni a prvotni nastaveni vlastnosti data kanalu
@@ -122,11 +137,12 @@ class WebRtcConnection {
             case InfoChannelMessageType.deviceInfo:
               print('Device info received');
               await waitForConnectionComplete();
-              var connectedDevice = await ConnectedDevice.create(
+              _connectedDevice = await ConnectedDevice.create(
                 uuid: decodedMessage['uuid'],
                 name: decodedMessage['deviceName'],
                 deviceType: decodedMessage['deviceType'],
               );
+              _deviceInfoReceived.complete();
               break;
             case InfoChannelMessageType.chunkArrivedOk:
               //print('Chunk arrived ok');
@@ -249,11 +265,12 @@ class WebRtcConnection {
           switch (connectionState) {
             case ConnectionState.connected:
               print('signaling process finished, peer connection established');
+              _isConnected = true;
               _connectionCompleter.complete();
               break;
 
             case ConnectionState.disconnected:
-              await _connectionManager.endPeerConnection(initiator: false);
+              await _connectionManager.endPeerConnection(disconnectInitiator: false);
               if (navigatorKey.currentContext != null) {
                 navigatorKey.currentContext!.go('/devices');
               }

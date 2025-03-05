@@ -13,14 +13,16 @@ class _SettingsPageState extends State<SettingsPage> {
 
   final _settingsBox = Hive.box('settings');
   late String _defaultFilePath;
+  late bool _autoSendClipboard;
+  late bool _autoReconnect;
 
   @override
   void initState() {
     super.initState();
     _defaultFilePath = _settingsBox.get('default_file_path');
+    _autoSendClipboard = _settingsBox.get('auto_send_clipboard');
+    _autoReconnect = _settingsBox.get('auto_reconnect');
   }
-
-  bool autoSendClipboard = false;
 
   @override
   Widget build(BuildContext context) {
@@ -80,10 +82,41 @@ class _SettingsPageState extends State<SettingsPage> {
                       style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
                     ),
                     Switch(
-                      value: autoSendClipboard,
+                      value: _autoSendClipboard,
                       onChanged: (value) {
                         setState(() {
-                          autoSendClipboard = value;
+                          _autoSendClipboard = value;
+                          _settingsBox.put('auto_send_clipboard', value);
+                        });
+                      },
+                    ),
+                  ],
+                ),
+              ),
+            ),
+            InkWell(
+              splashFactory: NoSplash.splashFactory,
+              onTap: () {},
+              child: Container(
+                margin: const EdgeInsets.all(8),
+                padding: const EdgeInsets.all(16),
+                decoration: BoxDecoration(
+                  color: Colors.black38,
+                  borderRadius: BorderRadius.circular(8),
+                ),
+                child: Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  children: [
+                    const Text(
+                      'Automatické znovupřipojení',
+                      style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
+                    ),
+                    Switch(
+                      value: _autoReconnect,
+                      onChanged: (value) {
+                        setState(() {
+                          _autoReconnect = value;
+                          _settingsBox.put('auto_reconnect', value);
                         });
                       },
                     ),

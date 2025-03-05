@@ -5,6 +5,7 @@ import 'package:device_link/ui/dialog/connecting_dialog.dart';
 import 'package:device_link/ui/dialog/response_dialog.dart';
 import 'package:device_link/ui/notifiers/searching_model.dart';
 import 'package:device_link/ui/router.dart';
+import 'package:device_link/webrtc_connection.dart';
 import 'package:network_info_plus/network_info_plus.dart';
 import 'package:device_link/discovered_devices_list.dart';
 import 'package:device_link/util/device_type.dart';
@@ -15,17 +16,21 @@ import 'message_type.dart';
 import 'signaling_server.dart';
 import 'signaling_client.dart';
 import 'package:flutter/material.dart';
+import 'package:device_link/database/last_connected_device.dart';
 
+//TODO: automaticky znovupripojeni
 class UdpDiscovery {
   static final UdpDiscovery _instance = UdpDiscovery._internal();
   factory UdpDiscovery() => _instance;
   UdpDiscovery._internal();
 
   final _settingsBox = Hive.box('settings');
+  final _lastDeviceBox = Hive.box('last_connected_device');
   late final String uuid;
   late final String deviceName;
   late final String? broadcastAddress;
   late final RawDatagramSocket socket;
+  late bool _autoReconnect;
   final SignalingServer _signalingServer = SignalingServer();
   final SignalingClient _signalingClient = SignalingClient();
   final SearchingModel _searchingModel = SearchingModel();
@@ -44,7 +49,16 @@ class UdpDiscovery {
     socket = await RawDatagramSocket.bind(InternetAddress.anyIPv4, 8081);
     socket.broadcastEnabled = true;
     await startListener(socket);
+    _autoReconnect = _settingsBox.get('auto_reconnect');
+    _startDatabaseListener();
     _initialized.complete();
+  }
+
+  void _startDatabaseListener() async {
+    final autoReconnectListener = _settingsBox.listenable(keys: ['auto_reconnect']);
+    autoReconnectListener.addListener(() {
+      _autoReconnect = _settingsBox.get('auto_send_clipboard');
+    });
   }
 
   Future<void> _sendDiscoveryBroadcast() async {
@@ -68,15 +82,14 @@ class UdpDiscovery {
     }
   }
 
-
-
-  Future<void> sendConnectionRequest(String ip) async {
+  Future<void> sendConnectionRequest({required String ip, required bool isReconnect}) async {
     final Map<String, dynamic> connectionRequestMessage = {
       'type': MessageType.dlConnectionRequest.name,
       'uuid': uuid,
       'version': '1.0',
       'deviceType': determineDeviceType(),
       'name': deviceName,
+      'isReconnect': isReconnect,
     };
 
     socket.send(utf8.encode(json.encode(connectionRequestMessage)), InternetAddress(ip), 8081);
@@ -93,6 +106,20 @@ class UdpDiscovery {
     _signalingClient.disconnect();
     socket.send(utf8.encode(json.encode(cancelRequestMessage)), InternetAddress(ip), 8081);
     print('Sent cancel request: ${json.encode(cancelRequestMessage)}');
+  }
+
+  bool decideReconnection({
+    required String messageUuid,
+    required String lastDeviceUuid,
+    required bool autoReconnect,
+    required bool isConnected
+  }) {
+    if (isConnected == true || autoReconnect == false) return false;
+    if (messageUuid == lastDeviceUuid) {
+      return true;
+    } else {
+      return false;
+    }
   }
 
   Future<void> startListener(RawDatagramSocket socket) async {
@@ -127,21 +154,53 @@ class UdpDiscovery {
                 name: decodedMessage['name'],
                 ip: decodedMessage['ip'],
               );
+
               if (DiscoveredDevices.list.any((d) => d.uuid == device.uuid)) return;
               onDeviceDiscovered(device);
+
+              if (!LastConnectedDevice.exists()) break;
+
+              bool canReconnect = decideReconnection(
+                  messageUuid: decodedMessage['uuid'],
+                  lastDeviceUuid: _lastDeviceBox.get('uuid'),
+                  autoReconnect: _autoReconnect,
+                  isConnected: WebRtcConnection.instance.isConnected
+              );
+
+              if (canReconnect && _lastDeviceBox.get('initiate_connection') == true) {
+                sendConnectionRequest(ip: decodedMessage['ip'], isReconnect: true);
+              }
               break;
 
             case MessageType.dlConnectionRequest:
-              bool? wasAccepted = await showDialog(
-                context: navigatorKey.currentContext!,
-                builder: (BuildContext context) {
-                  return ResponseDialog(
-                      uuid: decodedMessage['uuid'],
-                      name: decodedMessage['name'],
-                      deviceType: decodedMessage['deviceType']
-                  );
-                },
-              );
+
+              bool canReconnect = false;
+              if (LastConnectedDevice.exists()) {
+                canReconnect = decideReconnection(
+                    messageUuid: decodedMessage['uuid'],
+                    lastDeviceUuid: _lastDeviceBox.get('uuid'),
+                    autoReconnect: _autoReconnect,
+                    isConnected: WebRtcConnection.instance.isConnected
+                );
+              }
+
+              //pokud se muzeme znovupripojit, ani se neukazuje dialog a rovnou prijmame pozadavek na pripojeni
+              bool? wasAccepted;
+              bool isReconnectRequest = decodedMessage['isReconnect'];
+              if (!canReconnect && (isReconnectRequest == false)) {
+                wasAccepted = await showDialog(
+                  context: navigatorKey.currentContext!,
+                  builder: (BuildContext context) {
+                    return ResponseDialog(
+                        uuid: decodedMessage['uuid'],
+                        name: decodedMessage['name'],
+                        deviceType: decodedMessage['deviceType']
+                    );
+                  },
+                );
+              } else {
+                wasAccepted = true;
+              }
 
               final Map<String, dynamic> response = {
                 'uuid': uuid,
@@ -167,6 +226,9 @@ class UdpDiscovery {
 
               String jsonResponse = json.encode(response);
               socket.send(utf8.encode(jsonResponse), datagram.address, datagram.port);
+              if (isReconnectRequest) {
+                await WebRtcConnection.instance.waitForConnectionComplete();
+              }
               break;
 
             case MessageType.dlConnectionAccept:

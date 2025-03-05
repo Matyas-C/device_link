@@ -7,6 +7,7 @@ import 'package:device_link/webrtc_connection.dart';
 import 'package:device_link/ui/dialog/connecting_dialog.dart';
 import 'package:device_link/udp_discovery.dart';
 
+//TODO: updatnout kdyz se pripoji zarizeni (nejakej normalni state management)
 class HomePage extends StatefulWidget {
 
   const HomePage({super.key});

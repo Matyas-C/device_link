@@ -52,6 +52,7 @@ class SignalingClient {
         await _webRtcConnection.initialize();
         await _webRtcConnection.initDataChannels();
         await _webRtcConnection.sendOffer();
+        _webRtcConnection.setLastDevice(connectionInitiator: false);
         break;
 
       case SignalingMessageType.webRtcOffer:
@@ -59,6 +60,7 @@ class SignalingClient {
         await _webRtcConnection.initialize();
         await _webRtcConnection.handleOffer(decodedMessage['sdp']);
         await _webRtcConnection.startIceExchange();
+        _webRtcConnection.setLastDevice(connectionInitiator: true);
         break;
 
       case SignalingMessageType.webRtcAnswer:

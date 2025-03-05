@@ -27,7 +27,7 @@ class DeviceTile extends StatelessWidget {
               return ConnectingDialog(deviceIp: deviceIp);
             }
         );
-        UdpDiscovery().sendConnectionRequest(deviceIp);
+        UdpDiscovery().sendConnectionRequest(ip: deviceIp, isReconnect: false);
       },
       borderRadius: BorderRadius.circular(8),
       child: Container(

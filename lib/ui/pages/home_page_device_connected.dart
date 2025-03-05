@@ -114,7 +114,7 @@ class _HomePageDeviceConnectedState extends State<HomePageDeviceConnected> {
                       },
                     );
                     if (result == true) {
-                      await _connectionManager.endPeerConnection(initiator: true);
+                      await _connectionManager.endPeerConnection(disconnectInitiator: true);
                       if (context.mounted) {
                         context.go('/devices');
                       }

@@ -1,13 +1,15 @@
 import 'dart:io';
 import 'package:flutter/material.dart';
 import 'util/window_util.dart';
-import 'database.dart';
+import 'database/database.dart';
 import 'udp_discovery.dart';
 import 'package:device_link/ui/router.dart';
 import 'package:connectivity_plus/connectivity_plus.dart';
 import 'package:device_link/network_connectivity_status.dart';
 import 'package:provider/provider.dart';
 
+//TODO: vyresit foreground aktivitu na androidu
+//TODO: otestovat na linuxu
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
 
