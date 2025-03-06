@@ -43,7 +43,8 @@ class WebRtcConnection {
   late int _fileCount;
   late int _fileSize;
   late ConnectedDevice _connectedDevice;
-  bool _isConnected = false;
+  bool _wasConnected = false;
+  bool _connectionIsActive = false;
   final ClipboardManager _clipboardManager = ClipboardManager();
   final ConnectionManager _connectionManager = ConnectionManager();
   final  FileTransferProgressModel _progressBarModel = GlobalOverlayManager().fileTransferProgressModel;
@@ -54,7 +55,8 @@ class WebRtcConnection {
   Completer<void> _deviceInfoReceived = Completer<void>();
 
   ConnectionManager get connectionManager => _connectionManager;
-  bool get isConnected => _isConnected;
+  bool get isConnected => _wasConnected;
+  bool get connectionIsActive => _connectionIsActive;
 
   Future<void> initialize() async {
     _peerConnection = await createPeerConnection({});
@@ -265,7 +267,8 @@ class WebRtcConnection {
           switch (connectionState) {
             case ConnectionState.connected:
               print('signaling process finished, peer connection established');
-              _isConnected = true;
+              _wasConnected = true;
+              _connectionIsActive = true;
               _connectionCompleter.complete();
               break;
 
@@ -499,7 +502,9 @@ class WebRtcConnection {
 
   Future<void> closeConnection() async {
     await _peerConnection.close();
+    _connectionIsActive = false;
     _connectionCompleter = Completer<void>();
+    _deviceInfoReceived = Completer<void>();
     print('peer connection closed');
   }
 }

@@ -19,6 +19,7 @@ import 'package:flutter/material.dart';
 import 'package:device_link/database/last_connected_device.dart';
 
 //TODO: automaticky znovupripojeni
+//TODO: proc reconnect funguje jen nekdy a nekdo se to loopne (porad se to pripojuje na svuj vlastni signaling server)
 class UdpDiscovery {
   static final UdpDiscovery _instance = UdpDiscovery._internal();
   factory UdpDiscovery() => _instance;
@@ -31,6 +32,7 @@ class UdpDiscovery {
   late final String? broadcastAddress;
   late final RawDatagramSocket socket;
   late bool _autoReconnect;
+  bool _reconnectRequestSent = false;
   final SignalingServer _signalingServer = SignalingServer();
   final SignalingClient _signalingClient = SignalingClient();
   final SearchingModel _searchingModel = SearchingModel();
@@ -62,6 +64,7 @@ class UdpDiscovery {
   }
 
   Future<void> _sendDiscoveryBroadcast() async {
+    if (WebRtcConnection.instance.connectionIsActive) return;
     final Map<String, dynamic> discoveryMessage = {
       'type': MessageType.dlDiscover.name,
       'uuid': uuid,
@@ -155,8 +158,9 @@ class UdpDiscovery {
                 ip: decodedMessage['ip'],
               );
 
-              if (DiscoveredDevices.list.any((d) => d.uuid == device.uuid)) return;
-              onDeviceDiscovered(device);
+              if (!DiscoveredDevices.list.any((d) => d.uuid == device.uuid)) {
+                onDeviceDiscovered(device);
+              }
 
               if (!LastConnectedDevice.exists()) break;
 
@@ -167,9 +171,11 @@ class UdpDiscovery {
                   isConnected: WebRtcConnection.instance.isConnected
               );
 
-              if (canReconnect && _lastDeviceBox.get('initiate_connection') == true) {
+              if (canReconnect && _lastDeviceBox.get('initiate_connection') && !_reconnectRequestSent) {
                 sendConnectionRequest(ip: decodedMessage['ip'], isReconnect: true);
+                _reconnectRequestSent = true;
               }
+
               break;
 
             case MessageType.dlConnectionRequest:
@@ -187,7 +193,9 @@ class UdpDiscovery {
               //pokud se muzeme znovupripojit, ani se neukazuje dialog a rovnou prijmame pozadavek na pripojeni
               bool? wasAccepted;
               bool isReconnectRequest = decodedMessage['isReconnect'];
-              if (!canReconnect && (isReconnectRequest == false)) {
+              if (canReconnect && isReconnectRequest) {
+                wasAccepted = true;
+              } else if (!isReconnectRequest) {
                 wasAccepted = await showDialog(
                   context: navigatorKey.currentContext!,
                   builder: (BuildContext context) {
@@ -199,7 +207,7 @@ class UdpDiscovery {
                   },
                 );
               } else {
-                wasAccepted = true;
+                wasAccepted = false;
               }
 
               final Map<String, dynamic> response = {
@@ -217,6 +225,7 @@ class UdpDiscovery {
                   _signalingServer.start();
                   await _signalingServer.waitForServerReady();
                 }
+                print('connecting to own signaling server');
                 await _signalingClient.connect('ws://${await NetworkInfo().getWifiIP()}:8080');
                 response['type'] = MessageType.dlConnectionAccept.name;
                 response['wsAddress'] = 'ws://${await NetworkInfo().getWifiIP()}:8080';
@@ -234,6 +243,7 @@ class UdpDiscovery {
             case MessageType.dlConnectionAccept:
               print('Connection accepted by peer: ${decodedMessage['uuid']}');
               ConnectingDialog.closeDialog(false);
+              print('connecting to peer signaling server');
               await _signalingClient.connect(decodedMessage['wsAddress']);
               break;
 
