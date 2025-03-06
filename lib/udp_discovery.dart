@@ -53,6 +53,7 @@ class UdpDiscovery {
     await startListener(socket);
     _autoReconnect = _settingsBox.get('auto_reconnect');
     _startDatabaseListener();
+    _startPeriodicDiscovery();
     _initialized.complete();
   }
 
@@ -60,6 +61,13 @@ class UdpDiscovery {
     final autoReconnectListener = _settingsBox.listenable(keys: ['auto_reconnect']);
     autoReconnectListener.addListener(() {
       _autoReconnect = _settingsBox.get('auto_send_clipboard');
+    });
+  }
+
+  //periodicky hledani zarizeni. pomalejsi, ale bezi porad
+  void _startPeriodicDiscovery() async {
+    Timer.periodic(const Duration(seconds: 5), (timer) {
+      _sendDiscoveryBroadcast();
     });
   }
 
