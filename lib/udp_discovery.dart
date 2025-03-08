@@ -5,12 +5,12 @@ import 'package:device_link/ui/dialog/connecting_dialog.dart';
 import 'package:device_link/ui/dialog/response_dialog.dart';
 import 'package:device_link/ui/notifiers/searching_model.dart';
 import 'package:device_link/ui/router.dart';
+import 'package:device_link/util/connection_manager.dart';
 import 'package:device_link/webrtc_connection.dart';
 import 'package:network_info_plus/network_info_plus.dart';
 import 'package:device_link/discovered_devices_list.dart';
 import 'package:device_link/util/device_type.dart';
 import 'package:hive_ce_flutter/hive_flutter.dart';
-import 'package:hive_ce/hive.dart';
 import 'other_device.dart';
 import 'message_type.dart';
 import 'signaling_server.dart';
@@ -18,8 +18,6 @@ import 'signaling_client.dart';
 import 'package:flutter/material.dart';
 import 'package:device_link/database/last_connected_device.dart';
 
-//TODO: automaticky znovupripojeni
-//TODO: proc reconnect funguje jen nekdy a nekdo se to loopne (porad se to pripojuje na svuj vlastni signaling server)
 class UdpDiscovery {
   static final UdpDiscovery _instance = UdpDiscovery._internal();
   factory UdpDiscovery() => _instance;
@@ -36,6 +34,7 @@ class UdpDiscovery {
   final SignalingServer _signalingServer = SignalingServer();
   final SignalingClient _signalingClient = SignalingClient();
   final SearchingModel _searchingModel = SearchingModel();
+  final ConnectionManager _connectionManager = WebRtcConnection.instance.connectionManager;
 
   Function(OtherDevice) onDeviceDiscovered = (device) {};
   late Future<bool?> Function(String uuid, String name, String deviceType) onConnectionRequest;
@@ -72,7 +71,6 @@ class UdpDiscovery {
   }
 
   Future<void> _sendDiscoveryBroadcast() async {
-    if (WebRtcConnection.instance.connectionIsActive) return;
     final Map<String, dynamic> discoveryMessage = {
       'type': MessageType.dlDiscover.name,
       'uuid': uuid,
@@ -123,9 +121,9 @@ class UdpDiscovery {
     required String messageUuid,
     required String lastDeviceUuid,
     required bool autoReconnect,
-    required bool isConnected
+    required bool wasConnected
   }) {
-    if (isConnected == true || autoReconnect == false) return false;
+    if (wasConnected == true || autoReconnect == false) return false;
     if (messageUuid == lastDeviceUuid) {
       return true;
     } else {
@@ -176,7 +174,7 @@ class UdpDiscovery {
                   messageUuid: decodedMessage['uuid'],
                   lastDeviceUuid: _lastDeviceBox.get('uuid'),
                   autoReconnect: _autoReconnect,
-                  isConnected: WebRtcConnection.instance.isConnected
+                  wasConnected: _connectionManager.wasConnected
               );
 
               if (canReconnect && _lastDeviceBox.get('initiate_connection') && !_reconnectRequestSent) {
@@ -194,7 +192,7 @@ class UdpDiscovery {
                     messageUuid: decodedMessage['uuid'],
                     lastDeviceUuid: _lastDeviceBox.get('uuid'),
                     autoReconnect: _autoReconnect,
-                    isConnected: WebRtcConnection.instance.isConnected
+                    wasConnected: _connectionManager.wasConnected
                 );
               }
 

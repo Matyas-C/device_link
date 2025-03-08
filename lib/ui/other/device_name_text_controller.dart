@@ -4,13 +4,13 @@ import 'package:hive_ce/hive.dart';
 
 class DeviceNameTextController {
   final TextEditingController textController = TextEditingController();
-  final _deviceBox = Hive.box('device');
+  final _settingsBox = Hive.box('settings');
 
   DeviceNameTextController() {
-    textController.text = _deviceBox.get('name');
+    textController.text = _settingsBox.get('name');
 
     textController.addListener(() {
-      _deviceBox.put('name', textController.text);
+      _settingsBox.put('name', textController.text);
     });
   }
 

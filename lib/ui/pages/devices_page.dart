@@ -1,3 +1,5 @@
+import 'package:device_link/util/connection_manager.dart';
+import 'package:device_link/webrtc_connection.dart';
 import 'package:flutter/material.dart';
 import 'package:device_link/discovered_devices_list.dart';
 import 'package:device_link/udp_discovery.dart';
@@ -7,9 +9,10 @@ import 'package:device_link/util/device_icon.dart';
 import 'package:device_link/ui/other/device_name_text_controller.dart';
 import 'package:device_link/network_connectivity_status.dart';
 import 'package:provider/provider.dart';
-import 'package:device_link/ui/snackbars/not_connected_to_network_bar.dart';
+import 'package:device_link/ui/snackbars/error_snackbar.dart';
 import 'package:device_link/ui/notifiers/searching_model.dart';
 import 'package:loading_animation_widget/loading_animation_widget.dart';
+import 'package:device_link/ui/other/absorb_pointer_opacity.dart';
 
 class DevicesPage extends StatefulWidget {
   const DevicesPage({super.key});
@@ -22,15 +25,16 @@ class _DevicesPageState extends State<DevicesPage> {
   late NetworkConnectivityStatus _connectivityStatus;
   late UdpDiscovery _udpDiscovery;
   late SearchingModel _searchingNotifier;
+  final ConnectionManager _connectionManager = WebRtcConnection.instance.connectionManager;
 
   @override
   void initState() {
     super.initState();
     UdpDiscovery().onDeviceDiscovered = (device) {
-      if (!mounted) return;
-      setState(() {
-        DiscoveredDevices.addDevice(device);
-      });
+      DiscoveredDevices.addDevice(device);
+      if (mounted) {
+        setState(() {});
+      }
     };
 
     _connectivityStatus = Provider.of<NetworkConnectivityStatus>(context, listen: false);
@@ -38,6 +42,7 @@ class _DevicesPageState extends State<DevicesPage> {
     _searchingNotifier = _udpDiscovery.searchingModel;
   }
 
+  //TODO: disablenout device tile pokud uz je spojeni aktivni
   @override
   Widget build(BuildContext context) {
     return Center(
@@ -93,7 +98,12 @@ class _DevicesPageState extends State<DevicesPage> {
                       } else {
                         ScaffoldMessenger.of(context).showSnackBar(
                           const SnackBar(
-                            content: NotConnectedToNetworkBar(),
+                            content: ErrorSnackBar(
+                              text: Text(
+                                  'Vaše zařízení není připojeno k síti',
+                                  style: TextStyle(color:Colors.white),
+                              )
+                            ),
                             backgroundColor: Colors.transparent,
                             behavior: SnackBarBehavior.fixed,
                             duration: Duration(seconds: 3),
@@ -108,17 +118,21 @@ class _DevicesPageState extends State<DevicesPage> {
             ),
             ConstrainedBox(
               constraints: const BoxConstraints(maxWidth: 600),
-              child: ListView.builder(
-                shrinkWrap: true,
-                itemCount: DiscoveredDevices.list.length,
-                itemBuilder: (context, index) {
-                  return DeviceTile(
-                    deviceName: DiscoveredDevices.list[index].name,
-                    deviceIp: DiscoveredDevices.list[index].ip,
-                    deviceType: DiscoveredDevices.list[index].deviceType,
-                    uuid: DiscoveredDevices.list[index].uuid,
-                  );
-                },
+              child: AbsorbPointerOpacity(
+                connectionManager: _connectionManager,
+                networkManager: _connectivityStatus,
+                child: ListView.builder(
+                  shrinkWrap: true,
+                  itemCount: DiscoveredDevices.list.length,
+                  itemBuilder: (context, index) {
+                    return DeviceTile(
+                      deviceName: DiscoveredDevices.list[index].name,
+                      deviceIp: DiscoveredDevices.list[index].ip,
+                      deviceType: DiscoveredDevices.list[index].deviceType,
+                      uuid: DiscoveredDevices.list[index].uuid,
+                    );
+                  },
+                ),
               ),
             ),
             const SizedBox(height: 50),
