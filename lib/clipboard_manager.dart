@@ -1,22 +1,25 @@
 import 'dart:async';
-
+import 'package:device_link/webrtc_connection.dart';
 import 'package:hive_ce_flutter/hive_flutter.dart';
 import 'package:super_clipboard/super_clipboard.dart';
 import 'dart:typed_data';
 import 'dart:convert';
 import 'package:device_link/message_type.dart';
+import 'package:clipboard_watcher/clipboard_watcher.dart';
 
-class ClipboardManager {
+class ClipboardManager with ClipboardListener {
   final _settingsBox = Hive.box('settings');
   late bool _autoSendClipboard;
 
   ClipboardManager() {
     _autoSendClipboard = _settingsBox.get('auto_send_clipboard', defaultValue: false);
     _startDatabaseListener();
+    clipboardWatcher.addListener(this);
+    clipboardWatcher.start();
   }
 
   //aktualizuje hodnotu autoSendClipboard pokazdy, co se zmeni v databazi
-  void _startDatabaseListener() {
+  void _startDatabaseListener() async{
     final autoSendListener = _settingsBox.listenable(keys: ['auto_send_clipboard']);
     autoSendListener.addListener(() {
       _autoSendClipboard = _settingsBox.get('auto_send_clipboard');
@@ -84,5 +87,17 @@ class ClipboardManager {
     }
     //TODO: proc super_clipboard haze java error kdyz jsou data nad cca 64KiB?
     await clipboard.write([item]);
+  }
+
+  @override
+  void onClipboardChanged() async {
+    if (_autoSendClipboard) {
+      WebRtcConnection.instance.sendClipboardData();
+    }
+  }
+
+  void dispose() {
+    clipboardWatcher.removeListener(this);
+    clipboardWatcher.stop();
   }
 }
