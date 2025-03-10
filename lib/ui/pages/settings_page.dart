@@ -1,3 +1,5 @@
+import 'dart:io';
+
 import 'package:flutter/material.dart';
 import 'package:file_picker/file_picker.dart';
 import 'package:hive_ce/hive.dart';
@@ -64,33 +66,36 @@ class _SettingsPageState extends State<SettingsPage> {
                   ),
                 ),
             ),
-            InkWell(
-              splashFactory: NoSplash.splashFactory,
-              onTap: () {},
-              child: Container(
-                margin: const EdgeInsets.all(8),
-                padding: const EdgeInsets.all(16),
-                decoration: BoxDecoration(
-                  color: Colors.black38,
-                  borderRadius: BorderRadius.circular(8),
-                ),
-                child: Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                  children: [
-                    const Text(
-                      'Automatické posílaní schránky',
-                      style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
-                    ),
-                    Switch(
-                      value: _autoSendClipboard,
-                      onChanged: (value) {
-                        setState(() {
-                          _autoSendClipboard = value;
-                          _settingsBox.put('auto_send_clipboard', value);
-                        });
-                      },
-                    ),
-                  ],
+            Visibility(
+              visible: !Platform.isAndroid,
+              child: InkWell(
+                splashFactory: NoSplash.splashFactory,
+                onTap: () {},
+                child: Container(
+                  margin: const EdgeInsets.all(8),
+                  padding: const EdgeInsets.all(16),
+                  decoration: BoxDecoration(
+                    color: Colors.black38,
+                    borderRadius: BorderRadius.circular(8),
+                  ),
+                  child: Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    children: [
+                      const Text(
+                        'Automatické posílaní schránky',
+                        style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
+                      ),
+                      Switch(
+                        value: _autoSendClipboard,
+                        onChanged: (value) {
+                          setState(() {
+                            _autoSendClipboard = value;
+                            _settingsBox.put('auto_send_clipboard', value);
+                          });
+                        },
+                      ),
+                    ],
+                  ),
                 ),
               ),
             ),

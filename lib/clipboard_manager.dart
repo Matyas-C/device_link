@@ -1,4 +1,5 @@
 import 'dart:async';
+import 'dart:io';
 import 'package:device_link/webrtc_connection.dart';
 import 'package:hive_ce_flutter/hive_flutter.dart';
 import 'package:super_clipboard/super_clipboard.dart';
@@ -20,6 +21,9 @@ class ClipboardManager with ClipboardListener {
 
   //aktualizuje hodnotu autoSendClipboard pokazdy, co se zmeni v databazi
   void _startDatabaseListener() async{
+    if (Platform.isAndroid) { //na androidu se to neda pouzit
+      return;
+    }
     final autoSendListener = _settingsBox.listenable(keys: ['auto_send_clipboard']);
     autoSendListener.addListener(() {
       _autoSendClipboard = _settingsBox.get('auto_send_clipboard');
@@ -70,8 +74,6 @@ class ClipboardManager with ClipboardListener {
     final ClipboardMessageType type = ClipboardMessageType.values.byName(dataAnnotated['type']);
     print('Setting clipboard data: $type');
     final item = DataWriterItem(suggestedName: 'clipboardItem');
-    print("Clipboard Image Data Length: ${data.length}");
-    print("First 10 Bytes: ${data.sublist(0, 10)}");
 
     switch (type) {
       case ClipboardMessageType.clipboardImg:
@@ -91,7 +93,7 @@ class ClipboardManager with ClipboardListener {
 
   @override
   void onClipboardChanged() async {
-    if (_autoSendClipboard) {
+    if (_autoSendClipboard && !Platform.isAndroid) {
       WebRtcConnection.instance.sendClipboardData();
     }
   }
