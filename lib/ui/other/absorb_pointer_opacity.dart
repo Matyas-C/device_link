@@ -38,10 +38,7 @@ class _AbsorbPointerOpacityState extends State<AbsorbPointerOpacity> {
               ScaffoldMessenger.of(context).showSnackBar(
                 SnackBar(
                   content: ErrorSnackBar(
-                    text: Text(
-                        snackbarMsg,
-                        style: const TextStyle(color:Colors.white),
-                    ),
+                    message: snackbarMsg
                   ),
                   backgroundColor: Colors.transparent,
                   behavior: SnackBarBehavior.fixed,

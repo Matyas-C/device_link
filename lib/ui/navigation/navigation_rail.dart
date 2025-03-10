@@ -1,3 +1,5 @@
+import 'dart:io';
+
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 
@@ -25,19 +27,23 @@ class NavRail extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final bool isPhone = Platform.isAndroid || Platform.isIOS; //pro nizsi nav rail pro mobily v landscape modu
+    final double logoGap = isPhone ? 30 : 50;
+    final double logoSize = isPhone ? 60 : 80;
+
     return NavigationRail(
       selectedIndex: selectedIndex,
       minWidth: 200,
       backgroundColor: Colors.black45,
-      leading: const Padding(
-        padding: EdgeInsets.symmetric(horizontal: 8, vertical: 50),
+      leading: Padding(
+        padding: EdgeInsets.symmetric(horizontal: 8, vertical: logoGap),
         child: Image(
-          image: AssetImage('assets/icons/logo-nobg-white.png'),
-          width: 80,
+          image: const AssetImage('assets/icons/logo-nobg-white.png'),
+          width: logoSize,
         ),
       ),
       onDestinationSelected: (index) => _onDestinationSelected(context, index),
-      labelType: NavigationRailLabelType.all,
+      labelType: isPhone ? NavigationRailLabelType.none : NavigationRailLabelType.all,
       destinations: const [
         NavigationRailDestination(
           icon: Icon(Icons.home),

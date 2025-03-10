@@ -1,11 +1,11 @@
 import 'package:flutter/material.dart';
 
 class ErrorSnackBar extends StatelessWidget {
-  final Text text;
+  final String message;
 
   const ErrorSnackBar({
     super.key,
-    required this.text,
+    required this.message,
   });
 
   @override
@@ -16,7 +16,7 @@ class ErrorSnackBar extends StatelessWidget {
         borderRadius: BorderRadius.circular(8),
       ),
       constraints: const BoxConstraints(
-          maxWidth: 100
+        maxWidth: 300, // Adjust the maxWidth as needed
       ),
       child: Padding(
         padding: const EdgeInsets.all(12.0),
@@ -25,7 +25,15 @@ class ErrorSnackBar extends StatelessWidget {
             children: [
               const Icon(Icons.error_outline, color: Colors.white),
               const SizedBox(width: 8),
-              text,
+              Expanded(
+                child: Text(
+                  message,
+                  style: const TextStyle(color: Colors.white),
+                  softWrap: true,
+                  maxLines: 3,
+                  overflow: TextOverflow.ellipsis,
+                ),
+              ),
             ],
           ),
         ),

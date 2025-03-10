@@ -1,3 +1,4 @@
+import 'package:device_link/foreground_task/foreground_task_notification.dart';
 import 'package:flutter/material.dart';
 import 'package:device_link/ui/navigation/navigation_rail.dart';
 import 'package:device_link/ui/navigation/navigation_bar.dart';

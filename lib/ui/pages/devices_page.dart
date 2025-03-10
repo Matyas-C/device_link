@@ -1,3 +1,5 @@
+import 'dart:io';
+
 import 'package:device_link/util/connection_manager.dart';
 import 'package:device_link/webrtc_connection.dart';
 import 'package:flutter/material.dart';
@@ -99,10 +101,7 @@ class _DevicesPageState extends State<DevicesPage> {
                         ScaffoldMessenger.of(context).showSnackBar(
                           const SnackBar(
                             content: ErrorSnackBar(
-                              text: Text(
-                                  'Vaše zařízení není připojeno k síti',
-                                  style: TextStyle(color:Colors.white),
-                              )
+                              message: 'Vaše zařízení není připojeno k síti'
                             ),
                             backgroundColor: Colors.transparent,
                             behavior: SnackBarBehavior.fixed,
@@ -139,33 +138,35 @@ class _DevicesPageState extends State<DevicesPage> {
             ListenableBuilder(
               listenable: _searchingNotifier,
               builder: (context, child) {
-                return Column(
-                  children: [
-                    Visibility(
-                      visible: DiscoveredDevices.list.isEmpty && !_searchingNotifier.isSearching,
-                      child: Text(
-                        "Žádná zařízení nebyla nalezena",
-                        style: TextStyle(fontSize: 18, color: Colors.grey.shade400),
+                return SingleChildScrollView(
+                  child: Column(
+                    children: [
+                      Visibility(
+                        visible: DiscoveredDevices.list.isEmpty && !_searchingNotifier.isSearching,
+                        child: Text(
+                          "Žádná zařízení nebyla nalezena",
+                          style: TextStyle(fontSize: 18, color: Colors.grey.shade400),
+                        ),
                       ),
-                    ),
-                    Visibility(
-                      visible: _searchingNotifier.isSearching,
-                      child: Row(
-                        mainAxisAlignment: MainAxisAlignment.center,
-                        children: [
-                          Text(
-                            "Hledání",
-                            style: TextStyle(fontSize: 18, color: Colors.grey.shade400),
-                          ),
-                          const SizedBox(width: 20),
-                          LoadingAnimationWidget.progressiveDots(
-                            color: Colors.grey.shade400,
-                            size: 30,
-                          )
-                        ],
-                      )
-                    ),
-                  ],
+                      Visibility(
+                        visible: _searchingNotifier.isSearching,
+                        child: Row(
+                          mainAxisAlignment: MainAxisAlignment.center,
+                          children: [
+                            Text(
+                              "Hledání",
+                              style: TextStyle(fontSize: 18, color: Colors.grey.shade400),
+                            ),
+                            const SizedBox(width: 20),
+                            LoadingAnimationWidget.progressiveDots(
+                              color: Colors.grey.shade400,
+                              size: 30,
+                            )
+                          ],
+                        )
+                      ),
+                    ],
+                  ),
                 );
               },
             )
