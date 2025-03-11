@@ -17,7 +17,10 @@ import 'package:device_link/ui/notifiers/file_transfer_progress_model.dart';
 import 'package:device_link/clipboard_manager.dart';
 import 'package:device_link/ui/router.dart';
 import 'package:device_link/database/last_connected_device.dart';
+import 'package:path_provider/path_provider.dart';
 
+
+//TODO: pridat posilani primo medii a slozek
 //TODO: pridat connection manager na spravovani stavu pripojeni (je aktivni, byl pripojen, atd.)
 class WebRtcConnection {
   static final WebRtcConnection _instance = WebRtcConnection._internal();
@@ -150,6 +153,7 @@ class WebRtcConnection {
               break;
             case InfoChannelMessageType.fileInfo:
               print('File info received');
+              print(decodedMessage);
               await setFileInfo(decodedMessage);
               break;
             case InfoChannelMessageType.fileInfoArrivedOk:
@@ -343,6 +347,38 @@ class WebRtcConnection {
     await _connectionCompleter.future;
   }
 
+  Future<void> transferDirectory() async {
+    String? directoryPath = await FilePicker.platform.getDirectoryPath();
+    if (directoryPath == null) return;
+
+    Directory directory = Directory(directoryPath);
+    List<FileSystemEntity> entities = directory.listSync(followLinks: false);
+
+    for (int i = 0; i < entities.length; i++) {
+      FileSystemEntity entity = entities[i];
+      if (entity is File) {
+        _fileReceived = Completer<void>();
+        await transferFile(
+          file: entity,
+          fileSize: entity.lengthSync(),
+          fileName: _getDirName(entity.path),
+          fileExtension: entity.path.split('.').last,
+          fileIndex: i,
+          fileCount: entities.length,
+        );
+        await _fileReceived.future;
+      }
+    }
+  }
+
+  String _getDirName(String path) {
+    if (Platform.isWindows) {
+      return path.split('\\').last;
+    } else {
+      return path.split('/').last;
+    }
+  }
+
   Future<void> transferFiles() async {
     FilePickerResult? results = await FilePicker.platform.pickFiles(allowMultiple: true);
     if (results == null) return;
@@ -358,7 +394,7 @@ class WebRtcConnection {
           fileName: f.name,
           fileExtension: f.extension,
           fileIndex: i,
-          fileCount: results.files.length
+          fileCount: results.files.length,
       );
       await _fileReceived.future;
     }
