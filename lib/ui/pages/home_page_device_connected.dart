@@ -10,17 +10,21 @@ import 'package:device_link/ui/overlays/overlay_manager.dart';
 import 'package:device_link/notifiers/file_transfer_progress_model.dart';
 import 'package:device_link/ui/constants/colors.dart';
 import 'package:gradient_borders/gradient_borders.dart';
+import 'package:device_link/notifiers/battery_manager.dart';
 
 class HomePageDeviceConnected extends StatefulWidget {
   final String uuid;
   final String deviceType;
   final String initialDeviceName;
+  final String ip;
+
 
   const HomePageDeviceConnected({
     super.key,
     required this.initialDeviceName,
     required this.uuid,
     required this.deviceType,
+    required this.ip,
   });
 
   @override
@@ -29,6 +33,7 @@ class HomePageDeviceConnected extends StatefulWidget {
 
 class _HomePageDeviceConnectedState extends State<HomePageDeviceConnected> {
   final ConnectionManager _connectionManager = WebRtcConnection.instance.connectionManager;
+  final BatteryManager _batteryManager = WebRtcConnection.instance.batteryManager;
   late String deviceName;
   bool autoSendClipboard = false;
   bool progressBarVisible = true;
@@ -54,27 +59,76 @@ class _HomePageDeviceConnectedState extends State<HomePageDeviceConnected> {
                   child: Column(
                     mainAxisAlignment: MainAxisAlignment.center,
                     children: [
-                      Row(
-                        mainAxisAlignment: MainAxisAlignment.start,
-                        crossAxisAlignment: CrossAxisAlignment.center,
-                        children: [
-                          const SizedBox(width: 20),
-                          Icon(
-                            getDeviceIcon(widget.deviceType),
-                            color: tertiaryColor,
-                            size: 72,
+                      Container(
+                        margin: const EdgeInsets.all(8),
+                        padding: const EdgeInsets.all(16),
+                        decoration: BoxDecoration(
+                          color: raisedColor,
+                          borderRadius: BorderRadius.circular(8),
+                          border: GradientBoxBorder(
+                              gradient: LinearGradient(
+                                  colors: [tertiaryColor.withOpacity(0.5), raisedColor],
+                                  begin: Alignment.centerLeft,
+                                  end: Alignment.centerRight
+                              ),
+                              width: 3
                           ),
-                          const SizedBox(width: 20),
-                          Text(
-                            deviceName,
-                            style: const TextStyle(
-                                fontSize: 24,
-                                fontWeight: FontWeight.bold,
-                                color: tertiaryColor
+                        ),
+                        child: Column(
+                          children: [
+                            Row(
+                              mainAxisAlignment: MainAxisAlignment.start,
+                              crossAxisAlignment: CrossAxisAlignment.center,
+                              children: [
+                                const SizedBox(width: 20),
+                                Icon(
+                                  getDeviceIcon(widget.deviceType),
+                                  color: tertiaryColor,
+                                  size: 72,
+                                ),
+                                const SizedBox(width: 20),
+                                Expanded(
+                                  child: Text(
+                                    deviceName,
+                                    style: const TextStyle(
+                                        fontSize: 24,
+                                        fontWeight: FontWeight.bold,
+                                        color: tertiaryColor
+                                    ),
+                                    overflow: TextOverflow.fade,
+                                    maxLines: 1,
+                                    softWrap: false,
+                                  ),
+                                ),
+                                const SizedBox(width: 10),
+                                ListenableBuilder(
+                                  listenable: _batteryManager,
+                                  builder: (BuildContext context, Widget? child) {
+                                    return Row(
+                                      children: [
+                                        Text("${_batteryManager.peerBatteryLevel.toString()}%", style: const TextStyle(fontSize: 16, color: Colors.white)),
+                                        const SizedBox(width: 5),
+                                        Icon(getBatteryIcon(_batteryManager.peerBatteryLevel), color:Colors.white),
+                                      ],
+                                    );
+                                  },
+                                ),
+                              ],
                             ),
-                          ),
-                          const SizedBox(width: 20),
-                        ],
+                            Align(
+                              alignment: Alignment.bottomRight,
+                              child: Tooltip(
+                                message: "Informace o zařízení:\nUUID: ${widget.uuid}\nIP: ${widget.ip}",
+                                textStyle: TextStyle(color: Colors.grey.shade400),
+                                decoration: BoxDecoration(
+                                  color: raisedColorLight,
+                                  borderRadius: BorderRadius.circular(8),
+                                ),
+                                child: const Icon(FluentIcons.info_24_regular, color: raisedColorHighlight),
+                              ),
+                            )
+                          ]
+                        ),
                       ),
                       const SizedBox(height: 20),
                       Container(
@@ -84,11 +138,11 @@ class _HomePageDeviceConnectedState extends State<HomePageDeviceConnected> {
                           decoration: BoxDecoration(
                             color: raisedColor,
                             borderRadius: BorderRadius.circular(8),
-                            border: const GradientBoxBorder(
+                            border: GradientBoxBorder(
                                 gradient: LinearGradient(
-                                    colors: [tertiaryColorTransparent50, raisedColor],
+                                    colors: [tertiaryColor.withOpacity(0.5), raisedColor],
                                     begin: Alignment.topLeft,
-                                    end: Alignment.bottomRight
+                                    end: const Alignment(0.8, 0.5)
                                 ),
                                 width: 3
                             ),
@@ -97,15 +151,6 @@ class _HomePageDeviceConnectedState extends State<HomePageDeviceConnected> {
                             children: [
                               Container(
                                 margin: const EdgeInsets.all(8),
-                                padding: const EdgeInsets.all(16),
-                                decoration: const BoxDecoration(
-                                    border: Border(
-                                        bottom: BorderSide(
-                                          color: Colors.white,
-                                          width: 0.5,
-                                        )
-                                    )
-                                ),
                                 child: const Center(
                                   child: Row(
                                     mainAxisAlignment: MainAxisAlignment.start,
@@ -123,6 +168,13 @@ class _HomePageDeviceConnectedState extends State<HomePageDeviceConnected> {
                                     ],
                                   ),
                                 ),
+                              ),
+                              Container(
+                                decoration: BoxDecoration(
+                                  color: Colors.grey.shade500,
+                                  borderRadius: BorderRadius.circular(1),
+                                ),
+                                height: 2,
                               ),
                               const SizedBox(height: 10),
                               Row(
@@ -241,6 +293,7 @@ class _HomePageDeviceConnectedState extends State<HomePageDeviceConnected> {
                             },
                           );
                           if (result == true) {
+                            print('Disconnecting (button clicked)');
                             await _connectionManager.endPeerConnection(disconnectInitiator: true);
                             if (context.mounted) {
                               context.go('/devices');

@@ -17,7 +17,8 @@ import 'package:device_link/notifiers/file_transfer_progress_model.dart';
 import 'package:device_link/notifiers/clipboard_manager.dart';
 import 'package:device_link/ui/router.dart';
 import 'package:device_link/database/last_connected_device.dart';
-import 'package:path_provider/path_provider.dart';
+import 'package:device_link/notifiers/battery_manager.dart';
+import 'package:network_info_plus/network_info_plus.dart';
 
 //TODO: proc se nekdy pri pripojeni z mobilu neupdatne UI?
 //TODO: pridat posilani primo medii a slozek
@@ -50,6 +51,7 @@ class WebRtcConnection {
   Function(bool) onConnectionStateChange = (bool isActive) {};
   final ClipboardManager _clipboardManager = ClipboardManager();
   final ConnectionManager _connectionManager = ConnectionManager();
+  final BatteryManager _batteryManager = BatteryManager();
   final  FileTransferProgressModel _progressBarModel = GlobalOverlayManager().fileTransferProgressModel;
   Completer<void> _connectionCompleter = Completer<void>();
   Completer<void> _canSendChunk = Completer<void>();
@@ -58,6 +60,7 @@ class WebRtcConnection {
   Completer<void> _deviceInfoReceived = Completer<void>();
 
   ConnectionManager get connectionManager => _connectionManager;
+  BatteryManager get batteryManager => _batteryManager;
 
   Future<void> initialize() async {
     _peerConnection = await createPeerConnection({});
@@ -94,6 +97,7 @@ class WebRtcConnection {
 
     _peerConnection.onConnectionState = (state) {
       if (state == RTCPeerConnectionState.RTCPeerConnectionStateFailed) {
+        print("Peer connection failed, disconnecting");
         _connectionManager.endPeerConnection(disconnectInitiator: false);
       }
     };
@@ -128,7 +132,7 @@ class WebRtcConnection {
 
   Future<void> _handleDataChannels() async {
 
-    _infoDataChannel.onDataChannelState = (RTCDataChannelState state) {
+    _infoDataChannel.onDataChannelState = (RTCDataChannelState state) async {
       if (state == RTCDataChannelState.RTCDataChannelOpen) {
         print('Info channel open');
 
@@ -144,6 +148,7 @@ class WebRtcConnection {
                 uuid: decodedMessage['uuid'],
                 name: decodedMessage['deviceName'],
                 deviceType: decodedMessage['deviceType'],
+                ip: decodedMessage['ip'],
               );
               _deviceInfoReceived.complete();
               break;
@@ -164,17 +169,23 @@ class WebRtcConnection {
               print('File arrived ok');
               _fileReceived.complete();
               break;
+            case InfoChannelMessageType.batteryLevel:
+              print('Battery level received');
+              _batteryManager.setPeerBatteryLevel(decodedMessage['batteryLevel']);
+              break;
             default:
               print('Unknown message type');
               break;
           }
         };
 
+        String? ip = await NetworkInfo().getWifiIP();
         final Map<String, dynamic> infoMessage = {
           'type': InfoChannelMessageType.deviceInfo.name,
           'deviceType': determineDeviceType(),
           'deviceName': _settingsBox.get('name'),
           'uuid': _settingsBox.get('uuid'),
+          'ip': ip,
         };
         _infoDataChannel.send(RTCDataChannelMessage(json.encode(infoMessage)));
       }
@@ -275,6 +286,7 @@ class WebRtcConnection {
               break;
 
             case ConnectionState.disconnected:
+              print("disconnecting (request from peer)");
               await _connectionManager.endPeerConnection(disconnectInitiator: false);
               if (navigatorKey.currentContext != null) {
                 navigatorKey.currentContext!.go('/devices');
@@ -528,6 +540,14 @@ class WebRtcConnection {
     }
   }
 
+  Future<void> sendBatteryLevel(int batteryLevel) async {
+    await _connectionCompleter.future;
+    final Map<String, dynamic> batteryLevelMessage = {
+      'type': InfoChannelMessageType.batteryLevel.name,
+      'batteryLevel': batteryLevel,
+    };
+    _infoDataChannel.send(RTCDataChannelMessage(json.encode(batteryLevelMessage)));
+  }
 
   Future<void> sendDisconnectRequest() async {
     await waitForConnectionComplete();

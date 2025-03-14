@@ -60,7 +60,7 @@ class _SettingsPageState extends State<SettingsPage> {
                     child: Column(
                       children: [
                         const Text('Výchozí složka pro ukládání souborů:', style: TextStyle(fontSize: 16)),
-                        Text(_defaultFilePath, style: const TextStyle(fontSize: 12)),
+                        Text(_defaultFilePath, style: TextStyle(fontSize: 12, color: Colors.grey.shade600)),
                         const SizedBox(height: 10),
                         const Text('Vybrat složku', style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold)),
                       ],

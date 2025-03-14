@@ -82,6 +82,7 @@ class PhoneConnect extends StatelessWidget {
         colorSchemeSeed: const Color.fromRGBO(54, 97, 255, 1),
       ).copyWith(
         scaffoldBackgroundColor: Colors.grey.shade900,
+        dividerColor: Colors.transparent,
       ),
       routerConfig: router, // Use the GoRouter instance
     );

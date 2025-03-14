@@ -25,6 +25,7 @@ class _HomePageState extends State<HomePage> {
         initialDeviceName: ConnectedDevice.instance!.name,
         uuid: ConnectedDevice.instance!.uuid,
         deviceType: ConnectedDevice.instance!.deviceType,
+        ip: ConnectedDevice.instance!.ip,
       );
     } else {
       return const HomePageNoDevice();

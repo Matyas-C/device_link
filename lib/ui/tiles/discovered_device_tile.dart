@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:device_link/util/device_icon.dart';
 import 'package:device_link/ui/dialog/connecting_dialog.dart';
 import 'package:device_link/udp_discovery/udp_discovery.dart';
+import 'package:device_link/ui/constants/colors.dart';
 
 class DeviceTile extends StatelessWidget {
   final String deviceName;
@@ -41,7 +42,7 @@ class DeviceTile extends StatelessWidget {
         child: Row(
           mainAxisSize: MainAxisSize.min,
           children: [
-            Icon(getDeviceIcon(deviceType), color: Colors.white, size: 40),
+            Icon(getDeviceIcon(deviceType), color: tertiaryColor, size: 40),
             const SizedBox(width: 10),
             Expanded(
               child: Column(
@@ -52,7 +53,7 @@ class DeviceTile extends StatelessWidget {
                     deviceName,
                     style: const TextStyle(
                       fontSize: 18,
-                      color: Colors.white,
+                      color: tertiaryColor,
                       fontWeight: FontWeight.bold,
                     ),
                     overflow: TextOverflow.fade,
