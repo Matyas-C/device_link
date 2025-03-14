@@ -1,6 +1,6 @@
-import 'package:device_link/network_connectivity_status.dart';
+import 'package:device_link/notifiers/network_connectivity_status.dart';
 import 'package:flutter/material.dart';
-import 'package:device_link/util/connection_manager.dart';
+import 'package:device_link/notifiers/connection_manager.dart';
 import 'package:device_link/ui/snackbars/error_snackbar.dart';
 
 class AbsorbPointerOpacity extends StatefulWidget {

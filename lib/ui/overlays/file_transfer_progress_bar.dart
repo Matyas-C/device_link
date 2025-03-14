@@ -1,6 +1,6 @@
 import 'dart:ui';
 import 'package:flutter/material.dart';
-import 'package:device_link/ui/notifiers/file_transfer_progress_model.dart';
+import 'package:device_link/notifiers/file_transfer_progress_model.dart';
 import 'package:device_link/ui/overlays/overlay_manager.dart';
 
 class FileTransferProgressBar extends StatefulWidget {

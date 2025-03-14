@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'package:loading_animation_widget/loading_animation_widget.dart';
 import 'package:device_link/webrtc_connection.dart';
+import 'package:device_link/ui/constants/colors.dart';
 
 //TODO: aktualizovat home page pred zavrenim dialogu
 class EmptyLoadingDialog extends StatefulWidget {
@@ -31,12 +32,12 @@ class _EmptyLoadingDialogState extends State<EmptyLoadingDialog> {
     });
     return Scaffold(
         body: Dialog.fullscreen(
-          backgroundColor: Colors.blue[900],
+          backgroundColor: secondaryColor,
           child: Center(
             child: Column(
               mainAxisAlignment: MainAxisAlignment.center,
               children: [
-                LoadingAnimationWidget.threeRotatingDots(color: Colors.white, size: 70),
+                LoadingAnimationWidget.threeRotatingDots(color: secondaryTextColor, size: 70),
               ],
             ),
           ),

@@ -1,13 +1,15 @@
+import 'package:fluentui_system_icons/fluentui_system_icons.dart';
 import 'package:flutter/material.dart';
 import 'package:device_link/util/device_icon.dart';
 import 'package:device_link/ui/dialog/disconnect_dialog.dart';
-import 'package:device_link/util/connection_manager.dart';
+import 'package:device_link/notifiers/connection_manager.dart';
 import 'package:device_link/webrtc_connection.dart';
 import 'package:go_router/go_router.dart';
 import 'package:device_link/ui/overlays/file_transfer_progress_bar.dart';
 import 'package:device_link/ui/overlays/overlay_manager.dart';
-import 'package:device_link/ui/notifiers/file_transfer_progress_model.dart';
-import 'package:permission_handler/permission_handler.dart';
+import 'package:device_link/notifiers/file_transfer_progress_model.dart';
+import 'package:device_link/ui/constants/colors.dart';
+import 'package:gradient_borders/gradient_borders.dart';
 
 class HomePageDeviceConnected extends StatefulWidget {
   final String uuid;
@@ -41,218 +43,240 @@ class _HomePageDeviceConnectedState extends State<HomePageDeviceConnected> {
   Widget build(BuildContext context) {
     final FileTransferProgressModel fileTransferProgressModel = GlobalOverlayManager().fileTransferProgressModel;
 
-    return Center(
-        child: Stack(
-          children: [
-            ConstrainedBox(
-              constraints: const BoxConstraints(maxWidth: 500),
-              child: Column(
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: [
-                  Icon(
-                    getDeviceIcon(widget.deviceType),
-                    size: 50,
-                  ),
-                  const SizedBox(height: 20),
-                  Text(
-                    deviceName,
-                    style: const TextStyle(fontSize: 24, fontWeight: FontWeight.bold),
-                  ),
-                  const SizedBox(height: 20),
-                  Container(
-                    margin: const EdgeInsets.all(8),
-                    padding: const EdgeInsets.fromLTRB(32, 8, 32, 8),
-                    decoration: BoxDecoration(
-                      color: Colors.black12,
-                      borderRadius: BorderRadius.circular(8),
-                    ),
-                    child: Column(
-                      children: [
-                        Container(
-                          margin: const EdgeInsets.all(8),
-                          padding: const EdgeInsets.all(16),
-                          decoration: const BoxDecoration(
-                              border: Border(
-                                  bottom: BorderSide(
-                                    color: Colors.white,
-                                    width: 1.5,
-                                  )
-                              )
-                          ),
-                          child: const Center(
-                            child: Row(
-                              mainAxisAlignment: MainAxisAlignment.start,
-                              children: [
-                                Icon(Icons.send_rounded, size: 36,),
-                                SizedBox(width: 12),
-                                Text(
-                                  'Přenést',
-                                  style: TextStyle(
-                                      fontSize: 20,
-                                      fontWeight: FontWeight.bold,
-                                      color: Colors.white
-                                  ),
-                                ),
-                              ],
-                            ),
-                          ),
-                        ),
-                        const SizedBox(height: 10),
-                        Row(
-                          mainAxisAlignment: MainAxisAlignment.center,
-                          children: [
-                            InkWell(
-                              onTap: () {
-                                WebRtcConnection.instance.transferFiles();
-                              },
-                              borderRadius: BorderRadius.circular(8),
-                              child: Container(
-                                margin: const EdgeInsets.all(8),
-                                padding: const EdgeInsets.all(16),
-                                decoration: BoxDecoration(
-                                  color: Colors.black26,
-                                  borderRadius: BorderRadius.circular(8),
-                                  border: Border.all(
-                                    color: Colors.grey.shade400,
-                                    width: 1.5,
-                                  ),
-                                ),
-                                child: const Column(
-                                  crossAxisAlignment: CrossAxisAlignment.start,
-                                  children: [
-                                    Center(
-                                      child: Column(
-                                        mainAxisSize: MainAxisSize.min,
-                                        children: [
-                                          Icon(Icons.insert_drive_file),
-                                          SizedBox(width: 8),
-                                          Text(
-                                            'Soubory',
-                                            style: TextStyle(fontSize: 18),
-                                          ),
-                                        ],
-                                      ),
-                                    ),
-                                  ],
-                                ),
-                              ),
-                            ),
-                            const SizedBox(width: 20),
-                            InkWell(
-                              onTap: () {
-                                WebRtcConnection.instance.transferDirectory();
-                              },
-                              borderRadius: BorderRadius.circular(8),
-                              child: Container(
-                                margin: const EdgeInsets.all(8),
-                                padding: const EdgeInsets.all(16),
-                                decoration: BoxDecoration(
-                                  color: Colors.black26,
-                                  borderRadius: BorderRadius.circular(8),
-                                  border: Border.all(
-                                    color: Colors.grey.shade400,
-                                    width: 1.5,
-                                  ),
-                                ),
-                                child: const Column(
-                                  crossAxisAlignment: CrossAxisAlignment.start,
-                                  children: [
-                                    Center(
-                                      child: Column(
-                                        mainAxisSize: MainAxisSize.min,
-                                        children: [
-                                          Icon(Icons.folder),
-                                          SizedBox(width: 8),
-                                          Text(
-                                            'Složku',
-                                            style: TextStyle(fontSize: 18),
-                                          ),
-                                        ],
-                                      ),
-                                    ),
-                                  ],
-                                ),
-                              ),
-                            ),
-                          ],
-                        ),
-                      ],
-                    ),
-                  ),
-                  const SizedBox(height: 10),
-                  InkWell(
-                    onTap: () async {
-                      await WebRtcConnection.instance.sendClipboardData();
-                    },
-                    borderRadius: BorderRadius.circular(8),
-                    child: Container(
-                      margin: const EdgeInsets.all(8),
-                      padding: const EdgeInsets.all(16),
-                      decoration: BoxDecoration(
-                        color: Colors.black26,
-                        borderRadius: BorderRadius.circular(8),
-                        border: Border.all(
-                          color: Colors.grey.shade400,
-                          width: 1.5,
-                        ),
-                      ),
-                      child: const Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
+    return Container(
+      color: Colors.transparent,
+      child: Center(
+          child: SingleChildScrollView(
+            child: Stack(
+              children: [
+                ConstrainedBox(
+                  constraints: const BoxConstraints(maxWidth: 500),
+                  child: Column(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: [
+                      Row(
+                        mainAxisAlignment: MainAxisAlignment.start,
+                        crossAxisAlignment: CrossAxisAlignment.center,
                         children: [
-                          Center(
-                            child: Text(
-                              'Poslat schránku',
-                              style: TextStyle(fontSize: 18),
+                          const SizedBox(width: 20),
+                          Icon(
+                            getDeviceIcon(widget.deviceType),
+                            color: tertiaryColor,
+                            size: 72,
+                          ),
+                          const SizedBox(width: 20),
+                          Text(
+                            deviceName,
+                            style: const TextStyle(
+                                fontSize: 24,
+                                fontWeight: FontWeight.bold,
+                                color: tertiaryColor
                             ),
                           ),
+                          const SizedBox(width: 20),
                         ],
                       ),
-                    ),
-                  ),
-                  const SizedBox(height: 20),
-                  TextButton.icon(
-                    onPressed: () async {
-                      bool? result = await showDialog<bool>(
-                        context: context,
-                        builder: (BuildContext context) {
-                          return const DisconnectDialog();
+                      const SizedBox(height: 20),
+                      Container(
+                        margin: const EdgeInsets.all(8),
+                        child: Ink(
+                          padding: const EdgeInsets.fromLTRB(32, 8, 32, 8),
+                          decoration: BoxDecoration(
+                            color: raisedColor,
+                            borderRadius: BorderRadius.circular(8),
+                            border: const GradientBoxBorder(
+                                gradient: LinearGradient(
+                                    colors: [tertiaryColorTransparent50, raisedColor],
+                                    begin: Alignment.topLeft,
+                                    end: Alignment.bottomRight
+                                ),
+                                width: 3
+                            ),
+                          ),
+                          child: Column(
+                            children: [
+                              Container(
+                                margin: const EdgeInsets.all(8),
+                                padding: const EdgeInsets.all(16),
+                                decoration: const BoxDecoration(
+                                    border: Border(
+                                        bottom: BorderSide(
+                                          color: Colors.white,
+                                          width: 0.5,
+                                        )
+                                    )
+                                ),
+                                child: const Center(
+                                  child: Row(
+                                    mainAxisAlignment: MainAxisAlignment.start,
+                                    children: [
+                                      Icon(FluentIcons.send_24_filled, size: 36,),
+                                      SizedBox(width: 12),
+                                      Text(
+                                        'Poslat',
+                                        style: TextStyle(
+                                            fontSize: 20,
+                                            fontWeight: FontWeight.w400,
+                                            color: Colors.white
+                                        ),
+                                      ),
+                                    ],
+                                  ),
+                                ),
+                              ),
+                              const SizedBox(height: 10),
+                              Row(
+                                mainAxisAlignment: MainAxisAlignment.center,
+                                children: [
+                                  Expanded(
+                                    child: InkWell(
+                                      onTap: () {
+                                        WebRtcConnection.instance.transferFiles();
+                                      },
+                                      borderRadius: BorderRadius.circular(8),
+                                      child: Container(
+                                        margin: const EdgeInsets.all(8),
+                                        padding: const EdgeInsets.all(16),
+                                        decoration: BoxDecoration(
+                                          color: raisedColorLight,
+                                          borderRadius: BorderRadius.circular(8),
+                                        ),
+                                        child: const Column(
+                                          crossAxisAlignment: CrossAxisAlignment.start,
+                                          children: [
+                                            Center(
+                                              child: Column(
+                                                mainAxisSize: MainAxisSize.min,
+                                                children: [
+                                                  Icon(FluentIcons.document_16_filled),
+                                                  SizedBox(width: 8),
+                                                  Text(
+                                                    'Soubory',
+                                                    style: TextStyle(fontSize: 18),
+                                                  ),
+                                                ],
+                                              ),
+                                            ),
+                                          ],
+                                        ),
+                                      ),
+                                    ),
+                                  ),
+                                  const SizedBox(width: 20),
+                                  Expanded(
+                                    child: InkWell(
+                                      onTap: () {
+                                        WebRtcConnection.instance.transferDirectory();
+                                      },
+                                      borderRadius: BorderRadius.circular(8),
+                                      child: Container(
+                                        margin: const EdgeInsets.all(8),
+                                        padding: const EdgeInsets.all(16),
+                                        decoration: BoxDecoration(
+                                          color: raisedColorLight,
+                                          borderRadius: BorderRadius.circular(8),
+                                        ),
+                                        child: const Column(
+                                          crossAxisAlignment: CrossAxisAlignment.start,
+                                          children: [
+                                            Center(
+                                              child: Column(
+                                                mainAxisSize: MainAxisSize.min,
+                                                children: [
+                                                  Icon(FluentIcons.folder_16_filled),
+                                                  SizedBox(width: 8),
+                                                  Text(
+                                                    'Složku',
+                                                    style: TextStyle(fontSize: 18),
+                                                  ),
+                                                ],
+                                              ),
+                                            ),
+                                          ],
+                                        ),
+                                      ),
+                                    ),
+                                  ),
+                                ],
+                              ),
+                              const SizedBox(height: 20),
+                              InkWell(
+                                onTap: () async {
+                                  await WebRtcConnection.instance.sendClipboardData();
+                                },
+                                borderRadius: BorderRadius.circular(8),
+                                child: Container(
+                                  margin: const EdgeInsets.all(8),
+                                  padding: const EdgeInsets.all(16),
+                                  decoration: BoxDecoration(
+                                    color: raisedColorLight,
+                                    borderRadius: BorderRadius.circular(8),
+                                  ),
+                                  child: const Center(
+                                    child: Column(
+                                      crossAxisAlignment: CrossAxisAlignment.center,
+                                      children: [
+                                        Icon(FluentIcons.clipboard_16_filled),
+                                        SizedBox(width: 8),
+                                        Text(
+                                          'Schránku',
+                                          style: TextStyle(fontSize: 18),
+                                        ),
+                                      ],
+                                    ),
+                                  ),
+                                ),
+                              ),
+                            ],
+                          ),
+                        ),
+                      ),
+                      const SizedBox(height: 20),
+                      TextButton.icon(
+                        onPressed: () async {
+                          bool? result = await showDialog<bool>(
+                            context: context,
+                            builder: (BuildContext context) {
+                              return const DisconnectDialog();
+                            },
+                          );
+                          if (result == true) {
+                            await _connectionManager.endPeerConnection(disconnectInitiator: true);
+                            if (context.mounted) {
+                              context.go('/devices');
+                            }
+                          }
                         },
-                      );
-                      if (result == true) {
-                        await _connectionManager.endPeerConnection(disconnectInitiator: true);
-                        if (context.mounted) {
-                          context.go('/devices');
-                        }
-                      }
-                    },
-                    icon: const Icon(Icons.close, color: Colors.red),
-                    label: const Text(
-                      'Odpojit',
-                      style: TextStyle(color: Colors.red),
-                    ),
+                        icon: const Icon(Icons.close, color: Colors.red),
+                        label: const Text(
+                          'Odpojit',
+                          style: TextStyle(color: Colors.red),
+                        ),
+                      ),
+                    ],
                   ),
-                ],
-              ),
+                ),
+                Positioned(
+                  left: 0,
+                  right: 0,
+                  bottom: 20,
+                  child: ListenableBuilder(
+                    listenable: fileTransferProgressModel,
+                    builder: (BuildContext context, Widget? child) {
+                      return Visibility(
+                        visible: fileTransferProgressModel.isVisible,
+                        child: const Padding(
+                          padding: EdgeInsets.symmetric(horizontal: 10.0),
+                          child: FileTransferProgressBar(),
+                        ),
+                      );
+                    },
+                  ),
+                ),
+              ],
             ),
-            Positioned(
-              left: 0,
-              right: 0,
-              bottom: 20,
-              child: ListenableBuilder(
-                listenable: fileTransferProgressModel,
-                builder: (BuildContext context, Widget? child) {
-                  return Visibility(
-                    visible: fileTransferProgressModel.isVisible,
-                    child: const Padding(
-                      padding: EdgeInsets.symmetric(horizontal: 10.0),
-                      child: FileTransferProgressBar(),
-                    ),
-                  );
-                },
-              ),
-            ),
-          ],
-        )
+          )
+      ),
     );
   }
 }

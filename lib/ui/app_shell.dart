@@ -1,7 +1,7 @@
-import 'package:device_link/foreground_task/foreground_task_notification.dart';
 import 'package:flutter/material.dart';
 import 'package:device_link/ui/navigation/navigation_rail.dart';
 import 'package:device_link/ui/navigation/navigation_bar.dart';
+import 'package:device_link/ui/constants/colors.dart';
 
 class AppShell extends StatelessWidget {
   final Widget child;
@@ -23,7 +23,6 @@ class AppShell extends StatelessWidget {
     );
   }
 
-  //TODO: Jak se zbavit unhandled click zvuku na windows?
   Widget _buildWideScreenLayout() {
     return Row(
       children: [
@@ -31,6 +30,7 @@ class AppShell extends StatelessWidget {
         Expanded(
           child: ScaffoldMessenger(
             child: Scaffold(
+              backgroundColor: backgroundColor,
               body: child,
             ),
           ),
@@ -40,6 +40,9 @@ class AppShell extends StatelessWidget {
   }
 
   Widget _buildNarrowScreenLayout() {
-    return child;
+    return Scaffold(
+      backgroundColor: backgroundColor,
+      body: child,
+    );
   }
 }

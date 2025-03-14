@@ -13,13 +13,13 @@ import 'connected_device.dart';
 import 'package:file_picker/file_picker.dart';
 import 'dart:typed_data';
 import 'package:device_link/ui/overlays/overlay_manager.dart';
-import 'package:device_link/ui/notifiers/file_transfer_progress_model.dart';
+import 'package:device_link/notifiers/file_transfer_progress_model.dart';
 import 'package:device_link/clipboard_manager.dart';
 import 'package:device_link/ui/router.dart';
 import 'package:device_link/database/last_connected_device.dart';
 import 'package:path_provider/path_provider.dart';
 
-
+//TODO: proc se nekdy pri pripojeni z mobilu neupdatne UI?
 //TODO: pridat posilani primo medii a slozek
 //TODO: pridat connection manager na spravovani stavu pripojeni (je aktivni, byl pripojen, atd.)
 class WebRtcConnection {

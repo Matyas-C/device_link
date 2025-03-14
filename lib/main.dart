@@ -11,7 +11,7 @@ import 'package:device_link/network_connectivity_status.dart';
 import 'package:provider/provider.dart';
 import 'package:device_link/foreground_task/foreground_task_notification.dart';
 
-//TODO: vyresit foreground aktivitu na androidu
+//TODO: zapnout closewithapp na androidu nebo ne?
 //TODO: otestovat na linuxu
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -79,7 +79,7 @@ class PhoneConnect extends StatelessWidget {
         fontFamily: 'Geist',
         useMaterial3: true,
         brightness: Brightness.dark,
-        colorSchemeSeed: const Color.fromRGBO(0, 171, 247, 1),
+        colorSchemeSeed: const Color.fromRGBO(54, 97, 255, 1),
       ).copyWith(
         scaffoldBackgroundColor: Colors.grey.shade900,
       ),

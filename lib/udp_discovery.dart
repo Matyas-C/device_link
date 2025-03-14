@@ -3,7 +3,7 @@ import 'dart:convert';
 import 'dart:io';
 import 'package:device_link/ui/dialog/connecting_dialog.dart';
 import 'package:device_link/ui/dialog/response_dialog.dart';
-import 'package:device_link/ui/notifiers/searching_model.dart';
+import 'package:device_link/notifiers/searching_model.dart';
 import 'package:device_link/ui/router.dart';
 import 'package:device_link/util/connection_manager.dart';
 import 'package:device_link/webrtc_connection.dart';

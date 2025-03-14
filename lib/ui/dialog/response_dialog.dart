@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:device_link/ui/dialog/empty_loading_dialog.dart';
+import 'package:device_link/ui/constants/colors.dart';
 
 class ResponseDialog extends StatelessWidget {
   final String uuid;
@@ -25,7 +26,7 @@ class ResponseDialog extends StatelessWidget {
   Widget build(BuildContext context) {
     return Dialog.fullscreen(
       key: navigatorKey,
-      backgroundColor: Colors.blue[900],
+      backgroundColor: secondaryColor,
       child: Padding(
         padding: const EdgeInsets.all(16.0), // Add padding to maintain distance from edges
         child: Center(
@@ -34,7 +35,11 @@ class ResponseDialog extends StatelessWidget {
             children: [
               Text(
                 "Požadavek na připojení od\n$name",
-                style: const TextStyle(fontSize: 24),
+                style: const TextStyle(
+                    fontSize: 24,
+                    color: secondaryTextColor,
+                    fontWeight: FontWeight.bold
+                ),
                 softWrap: true,
                 maxLines: 3, // Adjust maxLines as needed
                 overflow: TextOverflow.ellipsis,
@@ -43,7 +48,7 @@ class ResponseDialog extends StatelessWidget {
               Row(
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: [
-                  TextButton(
+                  FilledButton(
                     onPressed: () {
                       Navigator.pop(context, true);
                       showDialog(
@@ -56,20 +61,28 @@ class ResponseDialog extends StatelessWidget {
                       "Přijmout",
                       style: TextStyle(
                           fontSize: 18,
-                          color: Colors.white
+                          color: secondaryColor,
+                          fontWeight: FontWeight.bold
                       ),
                     ),
                   ),
                   const SizedBox(width: 20),
-                  TextButton(
+                  OutlinedButton(
                     onPressed: () {
                       Navigator.pop(context, false);
                     },
+                    style: OutlinedButton.styleFrom(
+                      side: const BorderSide(
+                          color: secondaryTextColor,
+                          width: 3
+                      ),
+                    ),
                     child: const Text(
                       "Odmítnout",
                       style: TextStyle(
                           fontSize: 18,
-                          color: Colors.white
+                          color: secondaryTextColor,
+                          fontWeight: FontWeight.bold
                       ),
                     ),
                   ),

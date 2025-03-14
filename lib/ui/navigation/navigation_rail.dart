@@ -1,7 +1,8 @@
 import 'dart:io';
-
+import 'package:fluentui_system_icons/fluentui_system_icons.dart';
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
+import 'package:device_link/ui/constants/colors.dart';
 
 class NavRail extends StatelessWidget {
   final int selectedIndex;
@@ -34,7 +35,7 @@ class NavRail extends StatelessWidget {
     return NavigationRail(
       selectedIndex: selectedIndex,
       minWidth: 200,
-      backgroundColor: Colors.black45,
+      backgroundColor: raisedColor,
       leading: Padding(
         padding: EdgeInsets.symmetric(horizontal: 8, vertical: logoGap),
         child: Image(
@@ -46,18 +47,19 @@ class NavRail extends StatelessWidget {
       labelType: isPhone ? NavigationRailLabelType.none : NavigationRailLabelType.all,
       destinations: const [
         NavigationRailDestination(
-          icon: Icon(Icons.home),
-          selectedIcon: Icon(Icons.home_filled),
+          icon: Icon(FluentIcons.home_32_filled, size: 32),
+          selectedIcon: Icon(FluentIcons.home_32_filled, size: 32),
+
           label: Text('Domů'),
         ),
         NavigationRailDestination(
-          icon: Icon(Icons.devices),
-          selectedIcon: Icon(Icons.devices),
+          icon: Icon(FluentIcons.phone_laptop_32_filled, size: 32),
+          selectedIcon: Icon(FluentIcons.phone_laptop_32_filled, size: 32),
           label: Text('Zařízení'),
         ),
         NavigationRailDestination(
-          icon: Icon(Icons.settings),
-          selectedIcon: Icon(Icons.settings),
+          icon: Icon(FluentIcons.settings_32_filled, size: 32),
+          selectedIcon: Icon(FluentIcons.settings_32_filled, size: 32),
           label: Text('Nastavení'),
         ),
       ],

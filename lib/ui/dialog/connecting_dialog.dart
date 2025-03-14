@@ -2,6 +2,7 @@ import 'package:device_link/udp_discovery.dart';
 import 'package:flutter/material.dart';
 import 'package:loading_animation_widget/loading_animation_widget.dart';
 import 'package:device_link/ui/dialog/empty_loading_dialog.dart';
+import 'package:device_link/ui/constants/colors.dart';
 
 class ConnectingDialog extends StatelessWidget {
   final String deviceIp;
@@ -31,19 +32,29 @@ class ConnectingDialog extends StatelessWidget {
   Widget build(BuildContext context) {
     return Dialog.fullscreen(
       key: navigatorKey,
-      backgroundColor: Colors.blue[900],
+      backgroundColor: secondaryColor,
       child: Center(
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
             const Text(
               "Připojování",
-              style: TextStyle(fontSize: 24),
+              style: TextStyle(
+                  fontSize: 24,
+                  color: secondaryTextColor,
+                  fontWeight: FontWeight.bold
+              ),
             ),
             const SizedBox(height: 30),
-            LoadingAnimationWidget.threeRotatingDots(color: Colors.white, size: 70),
+            LoadingAnimationWidget.threeRotatingDots(color: secondaryTextColor, size: 70),
             const SizedBox(height: 30),
-            TextButton(
+            OutlinedButton(
+              style: OutlinedButton.styleFrom(
+                side: const BorderSide(
+                    color: secondaryTextColor,
+                    width: 3
+                ),
+              ),
               onPressed: () {
                 Navigator.pop(context);
                 UdpDiscovery().sendCancelRequest(deviceIp);
@@ -52,7 +63,8 @@ class ConnectingDialog extends StatelessWidget {
                 "Zrušit",
                 style: TextStyle(
                     fontSize: 18,
-                    color: Colors.white
+                    color: secondaryTextColor,
+                    fontWeight: FontWeight.bold
                 ),
               ),
             )

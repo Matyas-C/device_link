@@ -1,4 +1,4 @@
-import 'package:device_link/ui/notifiers/file_transfer_progress_model.dart';
+import 'package:device_link/notifiers/file_transfer_progress_model.dart';
 
 //TODO: asi nahranit necim lepsim? (asi ne singletonem)
 class GlobalOverlayManager {

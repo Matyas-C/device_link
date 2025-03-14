@@ -1,3 +1,5 @@
+import 'package:device_link/ui/constants/colors.dart';
+import 'package:fluentui_system_icons/fluentui_system_icons.dart';
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 
@@ -28,19 +30,19 @@ class NavBar extends StatelessWidget {
     return NavigationBar(
       selectedIndex: selectedIndex,
       onDestinationSelected: (index) => _onTap(context, index),
-      backgroundColor: Colors.black45,
+      backgroundColor: raisedColor,
       height: 100,
       destinations: const [
         NavigationDestination(
-          icon: Icon(Icons.home),
+          icon: Icon(FluentIcons.home_32_filled),
           label: 'Domů',
         ),
         NavigationDestination(
-          icon: Icon(Icons.devices),
+          icon: Icon(FluentIcons.phone_laptop_32_filled),
           label: 'Zařízení',
         ),
         NavigationDestination(
-          icon: Icon(Icons.settings),
+          icon: Icon(FluentIcons.settings_32_filled),
           label: 'Nastavení',
         ),
       ],
