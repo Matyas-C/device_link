@@ -1,11 +1,11 @@
 import 'dart:io';
 
 import 'package:device_link/notifiers/connection_manager.dart';
-import 'package:device_link/webrtc_connection.dart';
+import 'package:device_link/web_rtc/webrtc_connection.dart';
 import 'package:fluentui_system_icons/fluentui_system_icons.dart';
 import 'package:flutter/material.dart';
-import 'package:device_link/discovered_devices_list.dart';
-import 'package:device_link/udp_discovery.dart';
+import 'package:device_link/udp_discovery/discovered_devices_list.dart';
+import 'package:device_link/udp_discovery/udp_discovery.dart';
 import '../tiles/discovered_device_tile.dart';
 import 'package:device_link/util/device_type.dart';
 import 'package:device_link/util/device_icon.dart';

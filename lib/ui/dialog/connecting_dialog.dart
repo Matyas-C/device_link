@@ -1,4 +1,4 @@
-import 'package:device_link/udp_discovery.dart';
+import 'package:device_link/udp_discovery/udp_discovery.dart';
 import 'package:flutter/material.dart';
 import 'package:loading_animation_widget/loading_animation_widget.dart';
 import 'package:device_link/ui/dialog/empty_loading_dialog.dart';

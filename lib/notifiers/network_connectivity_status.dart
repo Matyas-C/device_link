@@ -1,7 +1,7 @@
 import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:connectivity_plus/connectivity_plus.dart';
-import 'package:device_link/udp_discovery.dart';
+import 'package:device_link/udp_discovery/udp_discovery.dart';
 
 class NetworkConnectivityStatus extends ChangeNotifier {
   late StreamSubscription<List<ConnectivityResult>> _connectivitySubscription;

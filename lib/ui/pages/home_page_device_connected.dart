@@ -3,7 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:device_link/util/device_icon.dart';
 import 'package:device_link/ui/dialog/disconnect_dialog.dart';
 import 'package:device_link/notifiers/connection_manager.dart';
-import 'package:device_link/webrtc_connection.dart';
+import 'package:device_link/web_rtc/webrtc_connection.dart';
 import 'package:go_router/go_router.dart';
 import 'package:device_link/ui/overlays/file_transfer_progress_bar.dart';
 import 'package:device_link/ui/overlays/overlay_manager.dart';

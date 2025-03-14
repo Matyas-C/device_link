@@ -2,7 +2,7 @@ import 'package:device_link/ui/constants/colors.dart';
 import 'package:flutter/material.dart';
 import 'package:device_link/util/device_icon.dart';
 import 'package:device_link/ui/dialog/connecting_dialog.dart';
-import 'package:device_link/udp_discovery.dart';
+import 'package:device_link/udp_discovery/udp_discovery.dart';
 
 class DeviceTile extends StatelessWidget {
   final String deviceName;

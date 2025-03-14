@@ -1,7 +1,7 @@
 import 'dart:convert';
 import 'dart:io';
 import 'package:network_info_plus/network_info_plus.dart';
-import 'message_type.dart';
+import '../enums/message_type.dart';
 import 'dart:async';
 
 class SignalingServer {

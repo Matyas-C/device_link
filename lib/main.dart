@@ -4,10 +4,10 @@ import 'package:flutter_foreground_task/flutter_foreground_task.dart';
 import 'package:permission_handler/permission_handler.dart';
 import 'util/window_util.dart';
 import 'database/database.dart';
-import 'udp_discovery.dart';
+import 'udp_discovery/udp_discovery.dart';
 import 'package:device_link/ui/router.dart';
 import 'package:connectivity_plus/connectivity_plus.dart';
-import 'package:device_link/network_connectivity_status.dart';
+import 'package:device_link/notifiers/network_connectivity_status.dart';
 import 'package:provider/provider.dart';
 import 'package:device_link/foreground_task/foreground_task_notification.dart';
 

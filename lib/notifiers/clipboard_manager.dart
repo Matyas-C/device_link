@@ -1,11 +1,11 @@
 import 'dart:async';
 import 'dart:io';
-import 'package:device_link/webrtc_connection.dart';
+import 'package:device_link/web_rtc/webrtc_connection.dart';
 import 'package:hive_ce_flutter/hive_flutter.dart';
 import 'package:super_clipboard/super_clipboard.dart';
 import 'dart:typed_data';
 import 'dart:convert';
-import 'package:device_link/message_type.dart';
+import 'package:device_link/enums/message_type.dart';
 import 'package:clipboard_watcher/clipboard_watcher.dart';
 
 class ClipboardManager with ClipboardListener {

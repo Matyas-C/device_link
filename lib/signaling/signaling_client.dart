@@ -1,7 +1,7 @@
 import 'dart:convert';
 import 'dart:io';
-import 'message_type.dart';
-import 'package:device_link/webrtc_connection.dart';
+import '../enums/message_type.dart';
+import 'package:device_link/web_rtc/webrtc_connection.dart';
 import 'package:flutter_webrtc/flutter_webrtc.dart';
 
 class SignalingClient {

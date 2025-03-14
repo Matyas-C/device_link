@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'package:loading_animation_widget/loading_animation_widget.dart';
-import 'package:device_link/webrtc_connection.dart';
+import 'package:device_link/web_rtc/webrtc_connection.dart';
 import 'package:device_link/ui/constants/colors.dart';
 
 //TODO: aktualizovat home page pred zavrenim dialogu

@@ -1,6 +1,6 @@
-import 'package:device_link/signaling_client.dart';
-import 'package:device_link/webrtc_connection.dart';
-import 'package:device_link/connected_device.dart';
+import 'package:device_link/signaling/signaling_client.dart';
+import 'package:device_link/web_rtc/webrtc_connection.dart';
+import 'package:device_link/web_rtc/connected_device.dart';
 import 'package:flutter/cupertino.dart';
 
 class ConnectionManager extends ChangeNotifier {
