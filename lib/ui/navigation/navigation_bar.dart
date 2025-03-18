@@ -32,6 +32,7 @@ class NavBar extends StatelessWidget {
       onDestinationSelected: (index) => _onTap(context, index),
       backgroundColor: raisedColor,
       height: 100,
+      indicatorColor: primaryColorLight.withOpacity(0.8),
       destinations: const [
         NavigationDestination(
           icon: Icon(FluentIcons.home_32_filled),

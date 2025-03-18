@@ -23,12 +23,14 @@ class AbsorbPointerOpacity extends StatefulWidget {
 class _AbsorbPointerOpacityState extends State<AbsorbPointerOpacity> {
   @override
   Widget build(BuildContext context) {
+    bool isDisabled = widget.connectionManager.connectionIsActive || !widget.networkManager.isConnectedToNetwork;
+
     return ListenableBuilder(
       listenable: Listenable.merge([widget.connectionManager, widget.networkManager]),
       builder: (BuildContext context, Widget? child) {
         return GestureDetector(
           onTap: () {
-            if (widget.connectionManager.connectionIsActive || !widget.networkManager.isConnectedToNetwork) {
+            if (isDisabled) {
               String snackbarMsg = 'Nelze se připojit k jinému zařízení, ';
               if (widget.connectionManager.connectionIsActive) {
                 snackbarMsg = '$snackbarMsg spojení je již aktivní';
@@ -50,9 +52,9 @@ class _AbsorbPointerOpacityState extends State<AbsorbPointerOpacity> {
             }
           },
           child: Opacity(
-            opacity: (widget.connectionManager.connectionIsActive || !widget.networkManager.isConnectedToNetwork) ? 0.5 : 1,
+            opacity: (isDisabled) ? 0.5 : 1,
             child: AbsorbPointer(
-              absorbing: (widget.connectionManager.connectionIsActive || !widget.networkManager.isConnectedToNetwork),
+              absorbing: (isDisabled),
               child: widget.child,
             ),
           ),

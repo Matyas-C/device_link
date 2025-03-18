@@ -3,6 +3,7 @@ import 'dart:convert';
 import 'dart:io';
 import 'package:device_link/notifiers/connection_manager.dart';
 import 'package:device_link/util/device_type.dart';
+import 'package:flutter/material.dart';
 import 'package:flutter_webrtc/flutter_webrtc.dart';
 import 'package:device_link/signaling/signaling_client.dart';
 import 'package:device_link/enums/message_type.dart';
@@ -19,6 +20,7 @@ import 'package:device_link/ui/router.dart';
 import 'package:device_link/database/last_connected_device.dart';
 import 'package:device_link/notifiers/battery_manager.dart';
 import 'package:network_info_plus/network_info_plus.dart';
+import 'package:device_link/ui/snackbars/error_snackbar.dart';
 
 //TODO: proc se nekdy pri pripojeni z mobilu neupdatne UI?
 //TODO: pridat posilani primo medii a slozek
@@ -218,10 +220,8 @@ class WebRtcConnection {
         _selectedFileSink.add(message.binary);
         await _selectedFileSink.flush();
         receivedBytes += message.binary.length;
-        //double receivedMb = receivedBytes / 1000000;
-        //print("Received $receivedMb MB");
         _progressBarModel.setProgress(bytesTransferred: receivedBytes);
-        _infoDataChannel.send(RTCDataChannelMessage(chunkOkMessage));
+        await _infoDataChannel.send(RTCDataChannelMessage(chunkOkMessage));
         if (receivedBytes >= _fileSize) {
           await _selectedFileSink.close();
           print("File $_fileName received and saved.");
@@ -275,17 +275,17 @@ class WebRtcConnection {
         print('Status channel open');
 
         _statusDataChannel.onMessage = (RTCDataChannelMessage message) async{
-          var connectionState = ConnectionState.values.byName(message.text);
+          var connectionState = RtcConnectionState.values.byName(message.text);
 
           switch (connectionState) {
-            case ConnectionState.connected:
+            case RtcConnectionState.connected:
               print('signaling process finished, peer connection established');
               _connectionManager.setWasConnected(true);
               _connectionManager.setConnectionIsActive(true);
               _connectionCompleter.complete();
               break;
 
-            case ConnectionState.disconnected:
+            case RtcConnectionState.disconnected:
               print("disconnecting (request from peer)");
               await _connectionManager.endPeerConnection(disconnectInitiator: false);
               if (navigatorKey.currentContext != null) {
@@ -299,7 +299,7 @@ class WebRtcConnection {
           }
         };
 
-        _statusDataChannel.send(RTCDataChannelMessage(ConnectionState.connected.name));
+        _statusDataChannel.send(RTCDataChannelMessage(RtcConnectionState.connected.name));
       }
     };
   }
@@ -493,6 +493,22 @@ class WebRtcConnection {
     _fileCount = info['fileCount'];
     _selectedDirectory = _settingsBox.get('default_file_path');
     _selectedFile = File('$_selectedDirectory/$_fileName');
+    //try {
+    //  RandomAccessFile raf = await _selectedFile.open();
+    //  await raf.close();
+    //} catch (e) {
+    //  if (navigatorKey.currentContext == null) return;
+    //  ScaffoldMessenger.of(navigatorKey.currentContext!).showSnackBar(SnackBar(
+    //    content: ErrorSnackBar(
+    //        message: "Nepodařilo se vytvořit soubor $_fileName, vyberte jinou složku pro ukládání souborů"
+    //    ),
+    //    backgroundColor: Colors.transparent,
+    //    behavior: SnackBarBehavior.fixed,
+    //    duration: const Duration(seconds: 10),
+    //  ));
+    //  GlobalOverlayManager().removeProgressBar();
+    //  return;
+    //}
     _selectedFileSink = _selectedFile.openWrite();
 
     final Map<String, String> fileOkMap = {
@@ -551,7 +567,7 @@ class WebRtcConnection {
 
   Future<void> sendDisconnectRequest() async {
     await waitForConnectionComplete();
-    _statusDataChannel.send(RTCDataChannelMessage(ConnectionState.disconnected.name));
+    _statusDataChannel.send(RTCDataChannelMessage(RtcConnectionState.disconnected.name));
   }
 
   Future<void> closeConnection() async {

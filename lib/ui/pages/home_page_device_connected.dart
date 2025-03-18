@@ -51,11 +51,14 @@ class _HomePageDeviceConnectedState extends State<HomePageDeviceConnected> {
     return Container(
       color: Colors.transparent,
       child: Center(
-          child: SingleChildScrollView(
-            child: Stack(
-              children: [
-                ConstrainedBox(
-                  constraints: const BoxConstraints(maxWidth: 500),
+        child: SingleChildScrollView(
+
+          child: Stack(
+            children: [
+              ConstrainedBox(
+                constraints: const BoxConstraints(maxWidth: 500),
+                child: Padding(
+                  padding: EdgeInsets.only(top: 100),
                   child: Column(
                     mainAxisAlignment: MainAxisAlignment.center,
                     children: [
@@ -309,26 +312,27 @@ class _HomePageDeviceConnectedState extends State<HomePageDeviceConnected> {
                     ],
                   ),
                 ),
-                Positioned(
-                  left: 0,
-                  right: 0,
-                  bottom: 20,
-                  child: ListenableBuilder(
-                    listenable: fileTransferProgressModel,
-                    builder: (BuildContext context, Widget? child) {
-                      return Visibility(
-                        visible: fileTransferProgressModel.isVisible,
-                        child: const Padding(
-                          padding: EdgeInsets.symmetric(horizontal: 10.0),
-                          child: FileTransferProgressBar(),
-                        ),
-                      );
-                    },
-                  ),
+              ),
+              Positioned(
+                left: 0,
+                right: 0,
+                bottom: 20,
+                child: ListenableBuilder(
+                  listenable: fileTransferProgressModel,
+                  builder: (BuildContext context, Widget? child) {
+                    return Visibility(
+                      visible: fileTransferProgressModel.isVisible,
+                      child: const Padding(
+                        padding: EdgeInsets.symmetric(horizontal: 10.0),
+                        child: FileTransferProgressBar(),
+                      ),
+                    );
+                  },
                 ),
-              ],
-            ),
-          )
+              ),
+            ],
+          ),
+        ),
       ),
     );
   }

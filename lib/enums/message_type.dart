@@ -14,7 +14,7 @@ enum SignalingMessageType {
   iceCandidate,
 }
 
-enum ConnectionState {
+enum RtcConnectionState {
   connected,
   disconnected,
 }
@@ -25,6 +25,7 @@ enum InfoChannelMessageType {
   fileInfo,
   fileInfoArrivedOk,
   fileArrivedOk,
+  batteryLevel,
 }
 
 enum ClipboardMessageType {

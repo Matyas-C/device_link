@@ -38,28 +38,31 @@ class NavRail extends StatelessWidget {
       backgroundColor: raisedColor,
       leading: Padding(
         padding: EdgeInsets.symmetric(horizontal: 8, vertical: logoGap),
-        child: Image(
-          image: const AssetImage('assets/icons/logo-nobg-white.png'),
-          width: logoSize,
+        child: Opacity(
+          opacity: 0.8,
+          child: Image(
+            image: const AssetImage('assets/icons/logo-nobg-white.png'),
+            width: logoSize,
+          ),
         ),
       ),
+      indicatorColor: primaryColorLight.withOpacity(0.8),
       onDestinationSelected: (index) => _onDestinationSelected(context, index),
       labelType: isPhone ? NavigationRailLabelType.none : NavigationRailLabelType.all,
       destinations: const [
         NavigationRailDestination(
-          icon: Icon(FluentIcons.home_32_filled, size: 32),
-          selectedIcon: Icon(FluentIcons.home_32_filled, size: 32),
-
+          icon: Icon(FluentIcons.home_24_filled),
+          selectedIcon: Icon(FluentIcons.home_24_filled),
           label: Text('Domů'),
         ),
         NavigationRailDestination(
-          icon: Icon(FluentIcons.phone_laptop_32_filled, size: 32),
-          selectedIcon: Icon(FluentIcons.phone_laptop_32_filled, size: 32),
+          icon: Icon(FluentIcons.phone_laptop_32_filled),
+          selectedIcon: Icon(FluentIcons.phone_laptop_32_filled),
           label: Text('Zařízení'),
         ),
         NavigationRailDestination(
-          icon: Icon(FluentIcons.settings_32_filled, size: 32),
-          selectedIcon: Icon(FluentIcons.settings_32_filled, size: 32),
+          icon: Icon(FluentIcons.settings_24_filled),
+          selectedIcon: Icon(FluentIcons.settings_24_filled),
           label: Text('Nastavení'),
         ),
       ],

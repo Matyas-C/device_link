@@ -62,7 +62,7 @@ class _SettingsPageState extends State<SettingsPage> {
                         const Text('Výchozí složka pro ukládání souborů:', style: TextStyle(fontSize: 16)),
                         Text(_defaultFilePath, style: TextStyle(fontSize: 12, color: Colors.grey.shade600)),
                         const SizedBox(height: 10),
-                        const Text('Vybrat složku', style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold)),
+                        const Text('Vybrat složku', style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold)), //TODO: pridat varovani
                       ],
                     ),
                     ),
