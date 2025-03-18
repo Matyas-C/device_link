@@ -1,8 +1,14 @@
+import 'package:device_link/notifiers/connection_manager.dart';
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 
 class DisconnectDialog extends StatelessWidget {
-  const DisconnectDialog({super.key});
+  final ConnectionManager connectionManager;
+
+  const DisconnectDialog({
+    super.key,
+    required this.connectionManager,
+  });
 
   @override
   Widget build(BuildContext context) {
@@ -16,15 +22,17 @@ class DisconnectDialog extends StatelessWidget {
           mainAxisAlignment: MainAxisAlignment.spaceBetween,
           children: [
             TextButton(
-              onPressed: () {
+              onPressed: () async {
                 Navigator.of(context).pop(true);
                 context.go('/devices');
+                await connectionManager.endPeerConnection(disconnectInitiator: true);
               },
               child: const Text('Ano'),
             ),
             TextButton(
               onPressed: () {
                 Navigator.of(context).pop(false);
+
               },
               child: const Text('Ne'),
             ),

@@ -289,19 +289,12 @@ class _HomePageDeviceConnectedState extends State<HomePageDeviceConnected> {
                       const SizedBox(height: 20),
                       TextButton.icon(
                         onPressed: () async {
-                          bool? result = await showDialog<bool>(
+                          await showDialog<bool>(
                             context: context,
                             builder: (BuildContext context) {
-                              return const DisconnectDialog();
+                              return DisconnectDialog(connectionManager: _connectionManager);
                             },
                           );
-                          if (result == true) {
-                            print('Disconnecting (button clicked)');
-                            await _connectionManager.endPeerConnection(disconnectInitiator: true);
-                            if (context.mounted) {
-                              context.go('/devices');
-                            }
-                          }
                         },
                         icon: const Icon(Icons.close, color: Colors.red),
                         label: const Text(
