@@ -142,7 +142,6 @@ class WebRtcConnection {
           switch (messageType) {
             case InfoChannelMessageType.deviceInfo:
               print('Device info received');
-              await waitForConnectionComplete();
               await _connectionManager.setDevice(
                 ConnectedDevice(
                   uuid: decodedMessage['uuid'],
@@ -180,16 +179,6 @@ class WebRtcConnection {
               break;
           }
         };
-
-        String? ip = await NetworkInfo().getWifiIP();
-        final Map<String, dynamic> infoMessage = {
-          'type': InfoChannelMessageType.deviceInfo.name,
-          'deviceType': determineDeviceType(),
-          'deviceName': _settingsBox.get('name'),
-          'uuid': _settingsBox.get('uuid'),
-          'ip': ip,
-        };
-        _infoDataChannel.send(RTCDataChannelMessage(json.encode(infoMessage)));
       }
     };
 
@@ -270,7 +259,7 @@ class WebRtcConnection {
 
 
     //status channel - mel by se inicializovat jako posledni
-    _statusDataChannel.onDataChannelState = (RTCDataChannelState state) {
+    _statusDataChannel.onDataChannelState = (RTCDataChannelState state) async{
       if (state == RTCDataChannelState.RTCDataChannelOpen) {
         print('Status channel open');
 
@@ -279,6 +268,17 @@ class WebRtcConnection {
 
           switch (connectionState) {
             case RtcConnectionState.connected:
+              String? ip = await NetworkInfo().getWifiIP();
+              final Map<String, dynamic> infoMessage = {
+                'type': InfoChannelMessageType.deviceInfo.name,
+                'deviceType': determineDeviceType(),
+                'deviceName': _settingsBox.get('name'),
+                'uuid': _settingsBox.get('uuid'),
+                'ip': ip,
+              };
+              _infoDataChannel.send(RTCDataChannelMessage(json.encode(infoMessage)));
+              await _deviceInfoReceived.future;
+
               print('signaling process finished, peer connection established');
               _connectionManager.setWasConnected(true);
               _connectionManager.setConnectionIsActive(true);
