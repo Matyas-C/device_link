@@ -1,3 +1,4 @@
+import 'package:device_link/notifiers/connection_manager.dart';
 import 'package:device_link/ui/dialog/response_dialog.dart';
 import 'package:flutter/material.dart';
 import 'home_page_no_device.dart';
@@ -17,18 +18,24 @@ class HomePage extends StatefulWidget {
 }
 
 class _HomePageState extends State<HomePage> {
+  final ConnectionManager _connectionManager = WebRtcConnection.instance.connectionManager;
 
   @override
   Widget build(BuildContext context) {
-    if (ConnectedDevice.instance != null) {
-      return HomePageDeviceConnected(
-        initialDeviceName: ConnectedDevice.instance!.name,
-        uuid: ConnectedDevice.instance!.uuid,
-        deviceType: ConnectedDevice.instance!.deviceType,
-        ip: ConnectedDevice.instance!.ip,
-      );
-    } else {
-      return const HomePageNoDevice();
-    }
+    return ListenableBuilder(
+      listenable: _connectionManager,
+      builder: (context, Widget? child) {
+        if (_connectionManager.device != null) {
+          return HomePageDeviceConnected(
+            initialDeviceName: _connectionManager.device!.name,
+            uuid: _connectionManager.device!.uuid,
+            deviceType: _connectionManager.device!.deviceType,
+            ip: _connectionManager.device!.ip,
+          );
+        } else {
+          return const HomePageNoDevice();
+        }
+      },
+    );
   }
 }

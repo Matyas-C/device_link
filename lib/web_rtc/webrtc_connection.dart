@@ -3,7 +3,6 @@ import 'dart:convert';
 import 'dart:io';
 import 'package:device_link/notifiers/connection_manager.dart';
 import 'package:device_link/util/device_type.dart';
-import 'package:flutter/material.dart';
 import 'package:flutter_webrtc/flutter_webrtc.dart';
 import 'package:device_link/signaling/signaling_client.dart';
 import 'package:device_link/enums/message_type.dart';
@@ -20,7 +19,6 @@ import 'package:device_link/ui/router.dart';
 import 'package:device_link/database/last_connected_device.dart';
 import 'package:device_link/notifiers/battery_manager.dart';
 import 'package:network_info_plus/network_info_plus.dart';
-import 'package:device_link/ui/snackbars/error_snackbar.dart';
 
 //TODO: proc se nekdy pri pripojeni z mobilu neupdatne UI?
 //TODO: pridat posilani primo medii a slozek
@@ -49,7 +47,6 @@ class WebRtcConnection {
   late int _fileIndex;
   late int _fileCount;
   late int _fileSize;
-  late ConnectedDevice _connectedDevice;
   Function(bool) onConnectionStateChange = (bool isActive) {};
   final ClipboardManager _clipboardManager = ClipboardManager();
   final ConnectionManager _connectionManager = ConnectionManager();
@@ -109,8 +106,8 @@ class WebRtcConnection {
     await _connectionCompleter.future;
     await _deviceInfoReceived.future;
     await LastConnectedDevice.save(
-        uuid: _connectedDevice.uuid,
-        lastKnownName: _connectedDevice.name,
+        uuid: _connectionManager.device!.uuid,
+        lastKnownName: _connectionManager.device!.name,
         initiateConnection: connectionInitiator
     );
   }
@@ -146,11 +143,13 @@ class WebRtcConnection {
             case InfoChannelMessageType.deviceInfo:
               print('Device info received');
               await waitForConnectionComplete();
-              _connectedDevice = await ConnectedDevice.create(
-                uuid: decodedMessage['uuid'],
-                name: decodedMessage['deviceName'],
-                deviceType: decodedMessage['deviceType'],
-                ip: decodedMessage['ip'],
+              await _connectionManager.setDevice(
+                ConnectedDevice(
+                  uuid: decodedMessage['uuid'],
+                  name: decodedMessage['deviceName'],
+                  deviceType: decodedMessage['deviceType'],
+                  ip: decodedMessage['ip'],
+                ),
               );
               _deviceInfoReceived.complete();
               break;

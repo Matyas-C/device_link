@@ -6,13 +6,15 @@ import 'package:flutter/cupertino.dart';
 class ConnectionManager extends ChangeNotifier {
   bool _wasConnected = false;
   bool _boolConnectionIsActive = false;
+  ConnectedDevice? _device;
 
   bool get wasConnected => _wasConnected;
   bool get connectionIsActive => _boolConnectionIsActive;
+  ConnectedDevice? get device => _device;
 
   Future<void> endPeerConnection({required bool disconnectInitiator}) async {
     await SignalingClient.instance.disconnect();
-    await ConnectedDevice.clear();
+    await clearDevice();
     if (disconnectInitiator) {
       await WebRtcConnection.instance.sendDisconnectRequest();
     }
@@ -26,6 +28,16 @@ class ConnectionManager extends ChangeNotifier {
 
   void setConnectionIsActive(bool connectionIsActive) {
     _boolConnectionIsActive = connectionIsActive;
+    notifyListeners();
+  }
+
+  Future<void> setDevice(ConnectedDevice? connectedDevice) async{
+    _device = connectedDevice;
+    notifyListeners();
+  }
+
+  Future<void> clearDevice() async{
+    _device = null;
     notifyListeners();
   }
 }
