@@ -94,7 +94,7 @@ class ClipboardManager with ClipboardListener {
   @override
   //TODO: posilat jen kdyz je aktivni spojeni
   void onClipboardChanged() async {
-    if (_autoSendClipboard && !Platform.isAndroid) {
+    if (_autoSendClipboard && !Platform.isAndroid && WebRtcConnection.instance.connectionManager.connectionIsActive) {
       WebRtcConnection.instance.sendClipboardData();
     }
   }
