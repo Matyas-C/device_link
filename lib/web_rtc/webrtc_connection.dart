@@ -151,6 +151,7 @@ class WebRtcConnection {
                   ip: decodedMessage['ip'],
                 ),
               );
+              print("connected device set");
               _deviceInfoReceived.complete();
               break;
             case InfoChannelMessageType.chunkArrivedOk:

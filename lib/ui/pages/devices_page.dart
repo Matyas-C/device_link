@@ -46,7 +46,6 @@ class _DevicesPageState extends State<DevicesPage> {
     _searchingNotifier = _udpDiscovery.searchingModel;
   }
 
-  //TODO: disablenout device tile pokud uz je spojeni aktivni
   @override
   Widget build(BuildContext context) {
     return Container(
