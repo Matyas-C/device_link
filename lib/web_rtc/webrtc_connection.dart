@@ -2,7 +2,10 @@ import 'dart:async';
 import 'dart:convert';
 import 'dart:io';
 import 'package:device_link/notifiers/connection_manager.dart';
+import 'package:device_link/ui/dialog/empty_loading_dialog.dart';
+import 'package:device_link/ui/snackbars/error_snackbar.dart';
 import 'package:device_link/util/device_type.dart';
+import 'package:flutter/material.dart';
 import 'package:flutter_webrtc/flutter_webrtc.dart';
 import 'package:device_link/signaling/signaling_client.dart';
 import 'package:device_link/enums/message_type.dart';
@@ -39,6 +42,8 @@ class WebRtcConnection {
   late RTCDataChannel _clipboardDataChannel;
   late RTCSessionDescription _offer;
   late RTCSessionDescription _answer;
+  Timer? _connectionTimer;
+  final int _timeoutSeconds = 30;
   late File _selectedFile;
   late IOSink _selectedFileSink;
   late String _selectedDirectory;
@@ -58,11 +63,13 @@ class WebRtcConnection {
   Completer<void> _fileReceived = Completer<void>();
   Completer<void> _deviceInfoReceived = Completer<void>();
   Completer<void> _infoChannelReady = Completer<void>();
+  Completer<void> _iceGathering = Completer<void>();
 
   ConnectionManager get connectionManager => _connectionManager;
   BatteryManager get batteryManager => _batteryManager;
 
   Future<void> initialize() async {
+    startTimeoutCheck();
     _peerConnection = await createPeerConnection({});
     int channelCount = 4;
     int channelsReady = 0;
@@ -101,6 +108,34 @@ class WebRtcConnection {
         _connectionManager.endPeerConnection(disconnectInitiator: false);
       }
     };
+  }
+
+  void startTimeoutCheck() async{
+    _connectionTimer = Timer(Duration(seconds: _timeoutSeconds), () async {
+      if (!_connectionCompleter.isCompleted) {
+        print("Connection timed out, aborting");
+        _connectionManager.endPeerConnection(disconnectInitiator: false);
+        if (navigatorKey.currentContext == null) return;
+        EmptyLoadingDialog.closeDialog(navigatorKey.currentContext!);
+        ScaffoldMessenger.of(navigatorKey.currentContext!).showSnackBar(const SnackBar(
+          content: ErrorSnackBar(
+              message: "Pokus o spojení selhal, restartujte aplikaci a zkuste to znovu"
+          ),
+          backgroundColor: Colors.transparent,
+          behavior: SnackBarBehavior.fixed,
+          duration: Duration(seconds: 10),
+        ));
+      } else {
+        print("Connection completed in time");
+      }
+    });
+  }
+
+  void cancelTimer() async{
+    if (_connectionTimer != null && _connectionTimer!.isActive) {
+      _connectionTimer!.cancel();
+      print('Timer canceled.');
+    }
   }
 
   Future<void> setLastDevice({required bool connectionInitiator}) async {
@@ -286,6 +321,7 @@ class WebRtcConnection {
               _connectionManager.setWasConnected(true);
               _connectionManager.setConnectionIsActive(true);
               _connectionCompleter.complete();
+              cancelTimer();
               break;
 
             case RtcConnectionState.disconnected:
@@ -356,6 +392,12 @@ class WebRtcConnection {
 
   Future<void> addCandidate(RTCIceCandidate candidate) async {
     await _peerConnection.addCandidate(candidate);
+    _peerConnection.onIceGatheringState = (RTCIceGatheringState state) {
+      if (state == RTCIceGatheringState.RTCIceGatheringStateComplete) {
+        _iceGathering.complete();
+        print("Ice gathering complete");
+      }
+    };
   }
 
   Future<void> waitForConnectionComplete() async {
@@ -579,6 +621,7 @@ class WebRtcConnection {
     _connectionCompleter = Completer<void>();
     _deviceInfoReceived = Completer<void>();
     _infoChannelReady = Completer<void>();
+    _iceGathering = Completer<void>();
     print('peer connection closed');
   }
 }
