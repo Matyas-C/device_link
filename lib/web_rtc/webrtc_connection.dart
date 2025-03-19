@@ -57,6 +57,7 @@ class WebRtcConnection {
   Completer<void> _fileInfoReceived = Completer<void>();
   Completer<void> _fileReceived = Completer<void>();
   Completer<void> _deviceInfoReceived = Completer<void>();
+  Completer<void> _infoChannelReady = Completer<void>();
 
   ConnectionManager get connectionManager => _connectionManager;
   BatteryManager get batteryManager => _batteryManager;
@@ -179,6 +180,7 @@ class WebRtcConnection {
               break;
           }
         };
+        _infoChannelReady.complete();
       }
     };
 
@@ -268,6 +270,7 @@ class WebRtcConnection {
 
           switch (connectionState) {
             case RtcConnectionState.connected:
+              await _infoChannelReady.future;
               String? ip = await NetworkInfo().getWifiIP();
               final Map<String, dynamic> infoMessage = {
                 'type': InfoChannelMessageType.deviceInfo.name,
@@ -575,6 +578,7 @@ class WebRtcConnection {
     _connectionManager.setConnectionIsActive(false);
     _connectionCompleter = Completer<void>();
     _deviceInfoReceived = Completer<void>();
+    _infoChannelReady = Completer<void>();
     print('peer connection closed');
   }
 }

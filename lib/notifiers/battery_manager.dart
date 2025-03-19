@@ -17,10 +17,12 @@ class BatteryManager extends ChangeNotifier {
   }
 
   Future<void> sendInitialBatteryLevel() async {
+    await WebRtcConnection.instance.waitForConnectionComplete();
     await WebRtcConnection.instance.sendBatteryLevel(await _battery.batteryLevel);
   }
 
   Future<void> _startPeriodicSubscription() async {
+
     _batterySubscription = Stream.periodic(const Duration(seconds: 5))
         .asyncMap((_) => _battery.batteryLevel)
         .distinct()
