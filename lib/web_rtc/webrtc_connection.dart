@@ -323,6 +323,9 @@ class WebRtcConnection {
               _connectionManager.setWasConnected(true);
               _connectionManager.setConnectionIsActive(true);
               _connectionCompleter.complete();
+              if (navigatorKey.currentContext != null) {
+                navigatorKey.currentContext!.go('/home');
+              }
               cancelTimer();
               break;
 
