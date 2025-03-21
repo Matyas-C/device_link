@@ -350,7 +350,7 @@ class _HomePageDeviceConnectedState extends State<HomePageDeviceConnected> {
                             style: TextStyle(color: Colors.red),
                           ),
                         ),
-                        const SizedBox(height: 30)
+                        const SizedBox(height: 50)
                       ],
                     ),
                   ),
