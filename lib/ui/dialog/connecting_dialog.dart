@@ -19,11 +19,7 @@ class ConnectingDialog extends StatelessWidget {
       Navigator.pop(navigatorKey.currentContext!);
 
       if (!cancelled) {
-        showDialog(
-            context: navigatorKey.currentContext!,
-            builder: (BuildContext context) {
-              return const EmptyLoadingDialog();
-            });
+        EmptyLoadingDialog.show(navigatorKey.currentContext!);
       }
     }
   }

@@ -7,11 +7,24 @@ import 'package:device_link/ui/constants/colors.dart';
 class EmptyLoadingDialog extends StatefulWidget {
   const EmptyLoadingDialog({super.key});
 
+  static bool isDialogOpen = false;
+  static bool isShowing() => isDialogOpen;
+
   static void closeDialog(BuildContext context) {
     if (Navigator.of(context, rootNavigator: true).canPop()) {
+      isDialogOpen = false;
       Navigator.of(context, rootNavigator: true).pop();
       context.go('/home');
     }
+  }
+
+  static Future<void> show(BuildContext context) {
+    isDialogOpen = true;
+    return showDialog(
+      context: context,
+      barrierDismissible: false,
+      builder: (context) => const EmptyLoadingDialog(),
+    );
   }
 
   @override
@@ -19,6 +32,19 @@ class EmptyLoadingDialog extends StatefulWidget {
 }
 
 class _EmptyLoadingDialogState extends State<EmptyLoadingDialog> {
+  @override
+  void initState() {
+    super.initState();
+    EmptyLoadingDialog.isDialogOpen = true;
+    _closeWhenConnected();
+  }
+
+  @override
+  void dispose() {
+    EmptyLoadingDialog.isDialogOpen = false;
+    super.dispose();
+  }
+
   Future<void> _closeWhenConnected() async {
     await WebRtcConnection.instance.waitForConnectionComplete();
     if (mounted) {
@@ -28,9 +54,6 @@ class _EmptyLoadingDialogState extends State<EmptyLoadingDialog> {
 
   @override
   Widget build(BuildContext context) {
-    WidgetsBinding.instance.addPostFrameCallback((_) {
-      _closeWhenConnected();
-    });
     return Scaffold(
         body: Dialog.fullscreen(
           backgroundColor: secondaryColor,

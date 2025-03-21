@@ -69,6 +69,9 @@ class WebRtcConnection {
   BatteryManager get batteryManager => _batteryManager;
 
   Future<void> initialize() async {
+    if (!EmptyLoadingDialog.isShowing() && navigatorKey.currentContext != null) {
+      EmptyLoadingDialog.show(navigatorKey.currentContext!);
+    }
     startTimeoutCheck();
     _peerConnection = await createPeerConnection({});
 

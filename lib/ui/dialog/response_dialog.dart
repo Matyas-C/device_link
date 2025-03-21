@@ -51,11 +51,7 @@ class ResponseDialog extends StatelessWidget {
                   FilledButton(
                     onPressed: () {
                       Navigator.pop(context, true);
-                      showDialog(
-                          context: context,
-                          builder: (BuildContext context) {
-                            return const EmptyLoadingDialog();
-                          });
+                      EmptyLoadingDialog.show(context);
                     },
                     child: const Text(
                       "Přijmout",
