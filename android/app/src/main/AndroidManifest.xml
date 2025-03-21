@@ -20,7 +20,8 @@
         <service
                 android:name="com.pravera.flutter_foreground_task.service.ForegroundService"
                 android:foregroundServiceType="dataSync|remoteMessaging"
-                android:exported="false" />
+                android:exported="false"
+                android:stopWithTask="true" />
         <meta-data
                 android:name="com.device_link.service.NOTIFICATION_ICON_SERVICE_DEVICE_LINK"
                 android:resource="@drawable/ic_device_link" />
