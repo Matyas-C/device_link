@@ -71,34 +71,28 @@ class WebRtcConnection {
   Future<void> initialize() async {
     startTimeoutCheck();
     _peerConnection = await createPeerConnection({});
-    int channelCount = 4;
-    int channelsReady = 0;
 
     _peerConnection.onDataChannel = (RTCDataChannel dataChannel) {
-
       switch (dataChannel.label) {
-        case 'statusChannel':
-          _statusDataChannel = dataChannel;
-          channelsReady++;
-          break;
         case 'infoChannel':
           _infoDataChannel = dataChannel;
-          channelsReady++;
+          _setupInfoChannel();
           break;
         case 'fileChannel':
           _fileDataChannel = dataChannel;
-          channelsReady++;
+          _setupFileChannel();
           break;
         case 'clipboardChannel':
           _clipboardDataChannel = dataChannel;
-          channelsReady++;
+          _setupClipboardChannel();
+          break;
+        case 'statusChannel':
+          _statusDataChannel = dataChannel;
+          _setupStatusChannel();
+          break;
         default:
           print('Unknown data channel');
           break;
-      }
-
-      if (channelsReady == channelCount) {
-        _handleDataChannels();
       }
     };
 
@@ -151,22 +145,25 @@ class WebRtcConnection {
   //vytvoreni a prvotni nastaveni vlastnosti data kanalu
   Future<void> initDataChannels() async {
     _infoDataChannel = await _peerConnection.createDataChannel('infoChannel', RTCDataChannelInit());
+    _setupInfoChannel();
     print('Info channel created');
 
     _fileDataChannel = await _peerConnection.createDataChannel('fileChannel', RTCDataChannelInit());
+    _setupFileChannel();
     print('File channel created');
 
     _clipboardDataChannel = await _peerConnection.createDataChannel('clipboardChannel', RTCDataChannelInit());
+    _setupClipboardChannel();
     print('Clipboard channel created');
 
     _statusDataChannel = await _peerConnection.createDataChannel('statusChannel', RTCDataChannelInit());
+    _setupStatusChannel();
     print('Status channel created');
 
-    _handleDataChannels();
+    //_handleDataChannels();
   }
 
-  Future<void> _handleDataChannels() async {
-
+  Future<void> _setupInfoChannel() async {
     _infoDataChannel.onDataChannelState = (RTCDataChannelState state) async {
       if (state == RTCDataChannelState.RTCDataChannelOpen) {
         print('Info channel open');
@@ -190,7 +187,7 @@ class WebRtcConnection {
               _deviceInfoReceived.complete();
               break;
             case InfoChannelMessageType.chunkArrivedOk:
-              //print('Chunk arrived ok');
+            //print('Chunk arrived ok');
               _canSendChunk.complete();
               break;
             case InfoChannelMessageType.fileInfo:
@@ -218,7 +215,9 @@ class WebRtcConnection {
         _infoChannelReady.complete();
       }
     };
+  }
 
+  Future<void> _setupFileChannel() async {
     _fileDataChannel.onDataChannelState = (RTCDataChannelState state) {
       if (state == RTCDataChannelState.RTCDataChannelOpen) {
         print('File channel open');
@@ -263,7 +262,9 @@ class WebRtcConnection {
         }
       };
     };
+  }
 
+  Future<void> _setupClipboardChannel() async {
     _clipboardDataChannel.onDataChannelState = (RTCDataChannelState state) {
       if (state == RTCDataChannelState.RTCDataChannelOpen) {
         print('Clipboard channel open');
@@ -293,8 +294,9 @@ class WebRtcConnection {
         };
       }
     };
+  }
 
-
+  Future<void> _setupStatusChannel() async {
     //status channel - mel by se inicializovat jako posledni
     _statusDataChannel.onDataChannelState = (RTCDataChannelState state) async{
       if (state == RTCDataChannelState.RTCDataChannelOpen) {
@@ -305,7 +307,7 @@ class WebRtcConnection {
 
           switch (connectionState) {
             case RtcConnectionState.connected:
-              await _infoChannelReady.future;
+              await _infoChannelReady.future; //pro jistotu si jeste pockame na info kanal
               String? ip = await NetworkInfo().getWifiIP();
               final Map<String, dynamic> infoMessage = {
                 'type': InfoChannelMessageType.deviceInfo.name,
