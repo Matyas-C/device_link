@@ -11,7 +11,6 @@ import 'package:device_link/notifiers/network_connectivity_status.dart';
 import 'package:provider/provider.dart';
 import 'package:device_link/foreground_task/foreground_task_notification.dart';
 
-//TODO: zapnout closewithapp na androidu nebo ne?
 //TODO: otestovat na linuxu
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -85,7 +84,7 @@ class PhoneConnect extends StatelessWidget {
         scaffoldBackgroundColor: Colors.grey.shade900,
         dividerColor: Colors.transparent,
       ),
-      routerConfig: router, // Use the GoRouter instance
+      routerConfig: router,
     );
   }
 }

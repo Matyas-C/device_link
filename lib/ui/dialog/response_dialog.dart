@@ -41,7 +41,7 @@ class ResponseDialog extends StatelessWidget {
                     fontWeight: FontWeight.bold
                 ),
                 softWrap: true,
-                maxLines: 3, // Adjust maxLines as needed
+                maxLines: 3,
                 overflow: TextOverflow.ellipsis,
               ),
               const SizedBox(height: 30),

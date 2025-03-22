@@ -23,9 +23,7 @@ import 'package:device_link/database/last_connected_device.dart';
 import 'package:device_link/notifiers/battery_manager.dart';
 import 'package:network_info_plus/network_info_plus.dart';
 
-//TODO: proc se nekdy pri pripojeni z mobilu neupdatne UI?
 //TODO: pridat posilani primo medii a slozek
-//TODO: pridat connection manager na spravovani stavu pripojeni (je aktivni, byl pripojen, atd.)
 class WebRtcConnection {
   static final WebRtcConnection _instance = WebRtcConnection._internal();
   factory WebRtcConnection() => _instance;
