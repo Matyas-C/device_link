@@ -79,6 +79,7 @@ class PhoneConnect extends StatelessWidget {
         fontFamily: 'Geist',
         useMaterial3: true,
         brightness: Brightness.dark,
+        hoverColor: Colors.white.withOpacity(0.2),
         colorSchemeSeed: const Color.fromRGBO(54, 97, 255, 1),
       ).copyWith(
         scaffoldBackgroundColor: Colors.grey.shade900,
