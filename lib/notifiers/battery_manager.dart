@@ -17,8 +17,9 @@ class BatteryManager extends ChangeNotifier {
   }
 
   Future<void> sendInitialBatteryLevel() async {
-    await WebRtcConnection.instance.waitForConnectionComplete();
-    await WebRtcConnection.instance.sendBatteryLevel(await _battery.batteryLevel);
+    int batteryLevel = await _battery.batteryLevel;
+    await WebRtcConnection.instance.sendBatteryLevel(batteryLevel);
+    print("Battery level sent");
   }
 
   Future<void> _startPeriodicSubscription() async {

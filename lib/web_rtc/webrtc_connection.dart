@@ -321,6 +321,7 @@ class WebRtcConnection {
               };
               _infoDataChannel.send(RTCDataChannelMessage(json.encode(infoMessage)));
               await _deviceInfoReceived.future;
+              _batteryManager.sendInitialBatteryLevel();
 
               print('signaling process finished, peer connection established');
               _connectionManager.setWasConnected(true);
