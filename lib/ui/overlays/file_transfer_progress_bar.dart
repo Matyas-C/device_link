@@ -1,4 +1,5 @@
 import 'dart:ui';
+import 'package:device_link/ui/constants/colors.dart';
 import 'package:flutter/material.dart';
 import 'package:device_link/notifiers/file_transfer_progress_model.dart';
 import 'package:device_link/ui/overlays/overlay_manager.dart';
@@ -78,7 +79,7 @@ class _FileTransferProgressBarState extends State<FileTransferProgressBar> {
                       LinearProgressIndicator(
                         value: fileTransferProgressModel.progress,
                         backgroundColor: Colors.grey.shade600,
-                        valueColor: const AlwaysStoppedAnimation<Color>(Colors.blue),
+                        valueColor: const AlwaysStoppedAnimation<Color>(tertiaryColor),
                         borderRadius: BorderRadius.circular(10.0),
                         minHeight: 10.0,
                       ),
