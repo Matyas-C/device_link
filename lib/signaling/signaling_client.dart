@@ -51,21 +51,21 @@ class SignalingClient {
         print('Second client connected to server');
         await _webRtcConnection.initialize();
         await _webRtcConnection.initDataChannels();
-        await _webRtcConnection.sendOffer();
+        await _webRtcConnection.sendOffer(alreadyConnected: false);
         _webRtcConnection.setLastDevice(connectionInitiator: false);
         break;
 
       case SignalingMessageType.webRtcOffer:
         print('Received WebRTC offer');
         await _webRtcConnection.initialize();
-        await _webRtcConnection.handleOffer(decodedMessage['sdp']);
+        await _webRtcConnection.handleOffer(decodedMessage['sdp'], alreadyConnected: false);
         await _webRtcConnection.startIceExchange();
         _webRtcConnection.setLastDevice(connectionInitiator: true);
         break;
 
       case SignalingMessageType.webRtcAnswer:
         print('Received WebRTC answer');
-        await _webRtcConnection.handleAnswer(decodedMessage['sdp']);
+        await _webRtcConnection.handleAnswer(decodedMessage['sdp'], alreadyConnected: false);
         await _webRtcConnection.startIceExchange();
         break;
 

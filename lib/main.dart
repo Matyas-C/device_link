@@ -22,13 +22,13 @@ void main() async {
   final udpDiscovery = UdpDiscovery();
 
   if (Platform.isWindows || Platform.isLinux || Platform.isMacOS) {
-    await setMinSize(400, 500);
+    await setMinSize(400, 400);
   }
 
   bool isNetworkConnected;
   final List<ConnectivityResult> conResult = await (Connectivity().checkConnectivity());
   if (conResult.contains(ConnectivityResult.wifi) || conResult.contains(ConnectivityResult.ethernet)) {
-    await udpDiscovery.initialize();
+    await udpDiscovery.initialize(); //TODO: opravit release
     udpDiscovery.sendDiscoveryBroadcastBatch(30);
     isNetworkConnected = true;
   } else {

@@ -26,6 +26,11 @@ enum InfoChannelMessageType {
   fileInfoArrivedOk,
   fileArrivedOk,
   batteryLevel,
+  openScreenShare,
+  webRtcOffer,
+  webRtcAnswer,
+  webRtcAnswerSet,
+  shareScreenStop
 }
 
 enum ClipboardMessageType {

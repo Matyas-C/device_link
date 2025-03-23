@@ -1,3 +1,4 @@
+import 'package:device_link/ui/pages/screen_share_page.dart';
 import 'package:go_router/go_router.dart';
 import 'package:flutter/material.dart';
 import 'package:device_link/ui/app_shell.dart';
@@ -33,6 +34,10 @@ final GoRouter _router = GoRouter(
         ),
       ],
     ),
+    GoRoute(
+      path: '/screen_share',
+      pageBuilder: (context, state) => const NoTransitionPage(child: ScreenSharePage()),
+    )
   ],
 );
 

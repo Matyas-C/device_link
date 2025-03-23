@@ -3,6 +3,7 @@ import 'dart:convert';
 import 'dart:io';
 import 'package:device_link/notifiers/connection_manager.dart';
 import 'package:device_link/ui/dialog/empty_loading_dialog.dart';
+import 'package:device_link/ui/pages/screen_share_page.dart';
 import 'package:device_link/ui/snackbars/error_snackbar.dart';
 import 'package:device_link/util/device_type.dart';
 import 'package:flutter/material.dart';
@@ -50,13 +51,18 @@ class WebRtcConnection {
   late int _fileIndex;
   late int _fileCount;
   late int _fileSize;
+  late MediaStream localStream;
+  late MediaStream _remoteStream ;
   Function(bool) onConnectionStateChange = (bool isActive) {};
+  Function() onScreenShareStopLocal = () {};
+  Function() onScreenShareStopRemote = () {};
   final ClipboardManager _clipboardManager = ClipboardManager();
   final ConnectionManager _connectionManager = ConnectionManager();
   final BatteryManager _batteryManager = BatteryManager();
   final  FileTransferProgressModel _progressBarModel = GlobalOverlayManager().fileTransferProgressModel;
   Completer<void> _connectionCompleter = Completer<void>();
   Completer<void> _canSendChunk = Completer<void>();
+  Completer<void> _sdpCompleter = Completer<void>();
   Completer<void> _fileInfoReceived = Completer<void>();
   Completer<void> _fileReceived = Completer<void>();
   Completer<void> _deviceInfoReceived = Completer<void>();
@@ -65,12 +71,16 @@ class WebRtcConnection {
 
   ConnectionManager get connectionManager => _connectionManager;
   BatteryManager get batteryManager => _batteryManager;
+  RTCPeerConnection get peerConnection => _peerConnection;
+  MediaStream get remoteStream => _remoteStream;
+  Completer<void> get sdpCompleter => _sdpCompleter;
 
   Future<void> initialize() async {
     if (!EmptyLoadingDialog.isShowing() && navigatorKey.currentContext != null) {
       EmptyLoadingDialog.show(navigatorKey.currentContext!);
     }
     startTimeoutCheck();
+
     _peerConnection = await createPeerConnection({});
 
     _peerConnection.onDataChannel = (RTCDataChannel dataChannel) {
@@ -101,6 +111,12 @@ class WebRtcConnection {
       if (state == RTCPeerConnectionState.RTCPeerConnectionStateFailed) {
         print("Peer connection failed, disconnecting");
         _connectionManager.endPeerConnection(disconnectInitiator: false);
+      }
+    };
+
+    peerConnection.onTrack = (RTCTrackEvent event) {
+      if (event.streams.isNotEmpty) {
+        _remoteStream = event.streams[0];
       }
     };
   }
@@ -207,6 +223,33 @@ class WebRtcConnection {
             case InfoChannelMessageType.batteryLevel:
               print('Battery level received');
               _batteryManager.setPeerBatteryLevel(decodedMessage['batteryLevel']);
+              break;
+            case InfoChannelMessageType.openScreenShare:
+              print('Screen share request received');
+              if (navigatorKey.currentContext != null) {
+                navigatorKey.currentContext!.go('/screen_share');
+              }
+              break;
+            case InfoChannelMessageType.webRtcOffer:
+              print('WebRTC offer received (already connected)');
+              await handleOffer(decodedMessage['sdp'], alreadyConnected: true);
+              break;
+            case InfoChannelMessageType.webRtcAnswer:
+              print('WebRTC answer received (already connected)');
+              await handleAnswer(decodedMessage['sdp'], alreadyConnected: true);
+              break;
+            case InfoChannelMessageType.webRtcAnswerSet:
+              print('WebRTC answer set on the peer side');
+              _sdpCompleter.complete();
+              break;
+            case InfoChannelMessageType.shareScreenStop:
+              print('Screen share stop message received');
+              _connectionManager.setIsScreenSharing(false);
+              if (decodedMessage['isSource']) {
+                onScreenShareStopRemote();
+              } else {
+                onScreenShareStopLocal();
+              }
               break;
             default:
               print('Unknown message type');
@@ -360,41 +403,60 @@ class WebRtcConnection {
     };
   }
 
-  Future<void> sendOffer() async {
+  Future<void> sendOffer({required bool alreadyConnected}) async {
+    _sdpCompleter = Completer<void>();
     _offer = await _peerConnection.createOffer({});
     await _peerConnection.setLocalDescription(_offer);
 
     if (_offer.sdp != null) {
       final Map<String, dynamic> offerMessage = {
-        'type': SignalingMessageType.webRtcOffer.name,
         'sdp': _offer.sdp!,
       };
-      _signalingClient.sendMessage(json.encode(offerMessage));
+      if (alreadyConnected) {
+        offerMessage['type'] = InfoChannelMessageType.webRtcOffer.name;
+        _infoDataChannel.send(RTCDataChannelMessage(json.encode(offerMessage)));
+      } else {
+        offerMessage['type'] = SignalingMessageType.webRtcOffer.name;
+        _signalingClient.sendMessage(json.encode(offerMessage));
+      }
     }
   }
 
-  Future<void> sendAnswer() async {
+  Future<void> sendAnswer({required bool alreadyConnected}) async {
+    _sdpCompleter = Completer<void>();
     _answer = await _peerConnection.createAnswer({});
     await _peerConnection.setLocalDescription(_answer);
 
     if (_answer.sdp != null) {
       final Map<String, dynamic> answerMessage = {
-        'type': SignalingMessageType.webRtcAnswer.name,
         'sdp': _answer.sdp!,
       };
-      _signalingClient.sendMessage(json.encode(answerMessage));
+      if (alreadyConnected) {
+        answerMessage['type'] = InfoChannelMessageType.webRtcAnswer.name;
+        _infoDataChannel.send(RTCDataChannelMessage(json.encode(answerMessage)));
+      } else {
+        answerMessage['type'] = SignalingMessageType.webRtcAnswer.name;
+        _signalingClient.sendMessage(json.encode(answerMessage));
+      }
     }
   }
 
-  Future<void> handleOffer(String sdp) async {
+  Future<void> handleOffer(String sdp, {required bool alreadyConnected}) async {
     print('Handling offer');
     await _peerConnection.setRemoteDescription(RTCSessionDescription(sdp, 'offer'));
-    await sendAnswer();
+    await sendAnswer(alreadyConnected: alreadyConnected);
   }
 
-  Future<void> handleAnswer(String sdp) async {
+  Future<void> handleAnswer(String sdp, {required bool alreadyConnected}) async {
     print('Handling answer');
     await _peerConnection.setRemoteDescription(RTCSessionDescription(sdp, 'answer'));
+    final Map<String, dynamic> answerOk = {
+      'type': InfoChannelMessageType.webRtcAnswerSet.name
+    };
+    if (alreadyConnected) {
+      _sdpCompleter.complete();
+      _infoDataChannel.send(RTCDataChannelMessage(json.encode(answerOk)));
+    }
   }
 
   Future<void> addCandidate(RTCIceCandidate candidate) async {
@@ -615,6 +677,22 @@ class WebRtcConnection {
       'batteryLevel': batteryLevel,
     };
     _infoDataChannel.send(RTCDataChannelMessage(json.encode(batteryLevelMessage)));
+  }
+
+  Future<void> sendScreenShareRequest() async {
+    await _connectionCompleter.future;
+    final Map<String, dynamic> screenShareRequest = {
+      'type': InfoChannelMessageType.openScreenShare.name,
+    };
+    _infoDataChannel.send(RTCDataChannelMessage(json.encode(screenShareRequest)));
+  }
+
+  Future<void> sendScreenShareStopMessage({required bool isSource}) async {
+    final Map<String, dynamic> screenShareRequest = {
+      'type': InfoChannelMessageType.shareScreenStop.name,
+      'isSource': isSource,
+    };
+    _infoDataChannel.send(RTCDataChannelMessage(json.encode(screenShareRequest)));
   }
 
   Future<void> sendDisconnectRequest() async {

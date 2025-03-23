@@ -1,3 +1,5 @@
+import 'package:device_link/ui/animated/blinking_dot.dart';
+import 'package:device_link/ui/dialog/select_screen_dialog.dart';
 import 'package:device_link/ui/pages/common_widgets/common_scroll_page.dart';
 import 'package:device_link/ui/pages/common_widgets/gradient_bordered_container.dart';
 import 'package:device_link/ui/pages/common_widgets/gradient_bordered_ink.dart';
@@ -14,6 +16,7 @@ import 'package:device_link/ui/overlays/overlay_manager.dart';
 import 'package:device_link/notifiers/file_transfer_progress_model.dart';
 import 'package:device_link/ui/constants/colors.dart';
 import 'package:device_link/notifiers/battery_manager.dart';
+import 'package:flutter_webrtc/flutter_webrtc.dart';
 
 class HomePageDeviceConnected extends StatefulWidget {
   final String uuid;
@@ -50,6 +53,10 @@ class _HomePageDeviceConnectedState extends State<HomePageDeviceConnected> {
   @override
   Widget build(BuildContext context) {
     final FileTransferProgressModel fileTransferProgressModel = GlobalOverlayManager().fileTransferProgressModel;
+    WebRtcConnection.instance.onScreenShareStopLocal = () {
+      _connectionManager.setIsScreenSharing(false);
+      _stopScreenShare();
+    };
 
     return Stack(
       alignment: Alignment.center,
@@ -130,7 +137,7 @@ class _HomePageDeviceConnectedState extends State<HomePageDeviceConnected> {
                         gradientBegin: Alignment.topLeft,
                         gradientEnd: const Alignment(0.8, 0.5),
                         opacity: 0.5,
-                        padding: const EdgeInsets.fromLTRB(32, 8, 32, 8),
+                        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
                         child: Column(
                           children: [
                             Container(
@@ -222,28 +229,86 @@ class _HomePageDeviceConnectedState extends State<HomePageDeviceConnected> {
                         gradientBegin: Alignment.topLeft,
                         gradientEnd: const Alignment(0.2, 0.8),
                         opacity: 0.5,
-                        padding: const EdgeInsets.fromLTRB(32, 8, 32, 8),
-                        child: InkWell(
-                          onTap: () {
-                            print("tapped");
-                          },
-                            borderRadius: BorderRadius.circular(8),
-                            child: const RaisedContainer(
-                              color: raisedColorLight,
-                              child: Center(
-                                child: Column(
-                                  crossAxisAlignment: CrossAxisAlignment.center,
-                                  children: [
-                                    Icon(FluentIcons.share_screen_start_16_filled),
-                                    SizedBox(width: 8),
-                                    Text(
-                                      'Sdílet obrazovku',
-                                      style: TextStyle(fontSize: 18),
+                        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+                        child: ListenableBuilder(
+                          listenable: _connectionManager,
+                          builder: (BuildContext context, Widget? child) {
+                            return Column(
+                              children: [
+                                Visibility(
+                                  visible: !_connectionManager.isScreenSharing,
+                                  child: AbsorbPointer(
+                                    absorbing: _connectionManager.screenShareCooldownActive,
+                                    child: Opacity(
+                                      opacity: _connectionManager.screenShareCooldownActive ? 0.5 : 1,
+                                      child: InkWell(
+                                          onTap: () {
+                                            startScreenShare();
+                                          },
+                                          borderRadius: BorderRadius.circular(8),
+                                          child: const RaisedContainer(
+                                            color: raisedColorLight,
+                                            child: Center(
+                                              child: Column(
+                                                crossAxisAlignment: CrossAxisAlignment.center,
+                                                children: [
+                                                  Icon(FluentIcons.share_screen_start_16_filled),
+                                                  SizedBox(width: 8),
+                                                  Text(
+                                                    'Sdílet obrazovku',
+                                                    style: TextStyle(fontSize: 18),
+                                                  ),
+                                                ],
+                                              ),
+                                            ),
+                                          )
+                                      ),
                                     ),
-                                  ],
+                                  ),
                                 ),
-                              ),
-                            )
+                                Visibility(
+                                  visible: _connectionManager.isScreenSharing,
+                                  child: RaisedContainer(
+                                      color: raisedColorLight,
+                                      child: Row(
+                                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                                        children: [
+                                          const Row(
+                                            mainAxisAlignment: MainAxisAlignment.start,
+                                            children: [
+                                              Text(
+                                                'Sdílení obrazovky aktivní',
+                                                style: TextStyle(fontSize: 12, fontWeight: FontWeight.bold),
+                                              ),
+                                              SizedBox(width: 20),
+                                              BlinkingDot(color: pastelGreen),
+                                            ],
+                                          ),
+                                          AbsorbPointer(
+                                            absorbing: _connectionManager.screenShareCooldownActive,
+                                            child: Opacity(
+                                              opacity: _connectionManager.screenShareCooldownActive ? 0.5 : 1,
+                                              child: TextButton(
+                                                child: const Text(
+                                                  'Zastavit',
+                                                  style: TextStyle(fontSize: 12, color: pastelRed),
+                                                ),
+                                                onPressed: () {
+                                                  print("Stopping screen share");
+                                                  WebRtcConnection.instance.sendScreenShareStopMessage(isSource: true);
+                                                  _connectionManager.startScreenShareCooldown();
+                                                  _stopScreenShare(); //TODO: proc to neky na androidu freezne appku?
+                                                },
+                                              ),
+                                            ),
+                                          )
+                                        ],
+                                      )
+                                  ),
+                                )
+                              ],
+                            );
+                          },
                         ),
                       )
                     ),
@@ -257,10 +322,10 @@ class _HomePageDeviceConnectedState extends State<HomePageDeviceConnected> {
                           },
                         );
                       },
-                      icon: const Icon(Icons.close, color: Colors.red),
+                      icon: const Icon(Icons.close, color: pastelRed),
                       label: const Text(
                         'Odpojit',
-                        style: TextStyle(color: Colors.red),
+                        style: TextStyle(color: pastelRed),
                       ),
                     ),
                     const SizedBox(height: 50)
@@ -293,8 +358,86 @@ class _HomePageDeviceConnectedState extends State<HomePageDeviceConnected> {
             ),
           ),
         ),
-
       ],
     );
+  }
+
+  Future<void> startScreenShare() async {
+    print('Starting screen share');
+    DesktopCapturerSource? source;
+    if (WebRTC.platformIsDesktop) {
+      source = await showDialog<DesktopCapturerSource>(
+        context: context,
+        builder: (context) => ScreenSelectDialog(),
+      );
+      if (source == null) {
+        return;
+      } else {
+        print("Selected source: ${source.name}");
+      }
+    }
+
+    Map<String, dynamic> mediaConstraints = {
+      'audio': false,
+      'video': {
+        'mandatory': {
+          'maxFrameRate': '30',
+        },
+      }
+    };
+
+    if (source != null) {
+      mediaConstraints['video'] = {
+        ...mediaConstraints['video'],
+        'deviceId': source.id,
+      };
+
+    }
+
+    print("starting stream");
+    try {
+      WebRtcConnection.instance.localStream = await navigator.mediaDevices.getDisplayMedia(mediaConstraints);
+    } catch (e) {
+      print("Error getting display media"); //uzivatel nejspis nepovolil MediaProjection pro nasi aplikaci
+      return;
+    }
+
+
+    for (var track in WebRtcConnection.instance.localStream.getTracks()) {
+      await WebRtcConnection.instance.peerConnection.addTrack(track, WebRtcConnection.instance.localStream);
+      print("Added track: ${track.kind}");
+    }
+
+    print("Stream added to peer connection, creating and sending new offer");
+    await WebRtcConnection.instance.sendOffer(alreadyConnected: true);
+    await WebRtcConnection.instance.sdpCompleter.future;
+    print("New sdp exchange completed, sending screen share request");
+    await WebRtcConnection.instance.sendScreenShareRequest();
+    _connectionManager.setIsScreenSharing(true);
+    _connectionManager.startScreenShareCooldown();
+  }
+
+  Future<void> _stopScreenShare() async { //TODO: proc obcas freezne
+    print("Stopping screen share");
+    try {
+      final tracks = WebRtcConnection.instance.localStream.getTracks();
+      if (tracks.isNotEmpty) {
+        for (final track in tracks) {
+          try {
+            print("Stopping track: ${track.kind}");
+            track.stop();
+            print("Stopped track: ${track.kind}");
+          } catch (e) {
+            print('Error stopping track: $e');
+          }
+        }
+      } else {
+        print("No tracks to stop");
+      }
+      _connectionManager.setIsScreenSharing(false);
+        } catch (e) {
+      print('Error in stopScreenShare: $e');
+    }
+    print("Screen share stopped successfully");
   }
 }
