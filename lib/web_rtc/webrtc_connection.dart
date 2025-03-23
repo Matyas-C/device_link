@@ -13,6 +13,7 @@ import 'package:device_link/enums/message_type.dart';
 import 'package:go_router/go_router.dart';
 import 'package:hive_ce_flutter/hive_flutter.dart';
 import 'package:hive_ce/hive.dart';
+import 'package:media_scanner/media_scanner.dart';
 import 'connected_device.dart';
 import 'package:file_picker/file_picker.dart';
 import 'dart:typed_data';
@@ -310,7 +311,10 @@ class WebRtcConnection {
           print("Transfer speed: $transferSpeed MB/s");
           receivedBytes = 0;
           await _infoDataChannel.send(RTCDataChannelMessage(fileOkMessage));
-          GlobalOverlayManager().removeProgressBar();
+          if (_fileIndex >= _fileCount - 1) {
+            GlobalOverlayManager().removeProgressBar();
+          }
+          MediaScanner.loadMedia(path: _selectedFile.path);
         }
       };
     };
