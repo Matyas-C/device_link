@@ -5,6 +5,8 @@ import 'package:flutter/material.dart';
 import 'package:flutter_webrtc/flutter_webrtc.dart';
 import 'package:go_router/go_router.dart';
 import 'package:fluentui_system_icons/fluentui_system_icons.dart';
+import 'package:vibration/vibration.dart';
+import 'package:vibration/vibration_presets.dart';
 
 class ScreenSharePage extends StatefulWidget {
   const ScreenSharePage({super.key});
@@ -128,8 +130,17 @@ class _ScreenSharePageState extends State<ScreenSharePage> with SingleTickerProv
         minScale: 0.5,
         maxScale: 4.0,
         child: GestureDetector(
-          onDoubleTap: () {
+          onDoubleTap: () async {
             _toggleButtonVisibility();
+            if (await Vibration.hasVibrator() && await Vibration.hasAmplitudeControl()) {
+              Vibration.vibrate(preset: VibrationPreset.singleShortBuzz);
+            }
+          },
+          onLongPress: () async {
+            _toggleButtonVisibility();
+            if (await Vibration.hasVibrator() && await Vibration.hasAmplitudeControl()) {
+              Vibration.vibrate(preset: VibrationPreset.singleShortBuzz);
+            }
           },
           child: RTCVideoView(
             _renderer!,
