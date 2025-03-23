@@ -151,26 +151,8 @@ class _ScreenSharePageState extends State<ScreenSharePage> with SingleTickerProv
   }
 
   void _stopScreenShare() async {
-    try {
-      final MediaStream? remoteStream = WebRtcConnection.instance.remoteStream;
-      if (remoteStream != null) {
-        final tracks = remoteStream.getTracks();
-        if (tracks.isNotEmpty) {
-          for (final track in tracks) {
-            try {
-              track.stop();
-            } catch (e) {
-              print('Error stopping track: $e');
-            }
-          }
-        }
-      }
-
-      if (_renderer != null) {
-        _renderer!.srcObject = null;
-      }
-    } catch (e) {
-      print('Error in _stopScreenShare: $e');
+    if (_renderer != null) {
+      _renderer!.srcObject = null;
     }
   }
 }

@@ -53,6 +53,7 @@ class WebRtcConnection {
   late int _fileSize;
   late MediaStream localStream;
   late MediaStream _remoteStream ;
+  late RTCRtpSender? sender;
   Function(bool) onConnectionStateChange = (bool isActive) {};
   Function() onScreenShareStopLocal = () {};
   Function() onScreenShareStopRemote = () {};
@@ -117,6 +118,13 @@ class WebRtcConnection {
     peerConnection.onTrack = (RTCTrackEvent event) {
       if (event.streams.isNotEmpty) {
         _remoteStream = event.streams[0];
+      }
+
+      if (event.track.kind == "video") {
+        event.track.onEnded = () {
+          print("Screen sharing stopped by sender.");
+          onScreenShareStopRemote();
+        };
       }
     };
   }

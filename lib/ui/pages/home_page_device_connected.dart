@@ -389,7 +389,9 @@ class _HomePageDeviceConnectedState extends State<HomePageDeviceConnected> {
     if (source != null) {
       mediaConstraints['video'] = {
         ...mediaConstraints['video'],
-        'deviceId': source.id,
+        'deviceId': {
+          'exact': source.id,
+        },
       };
 
     }
@@ -404,8 +406,23 @@ class _HomePageDeviceConnectedState extends State<HomePageDeviceConnected> {
 
 
     for (var track in WebRtcConnection.instance.localStream.getTracks()) {
-      await WebRtcConnection.instance.peerConnection.addTrack(track, WebRtcConnection.instance.localStream);
+      WebRtcConnection.instance.sender = await WebRtcConnection.instance.peerConnection.addTrack(track, WebRtcConnection.instance.localStream);
       print("Added track: ${track.kind}");
+
+      if (track.kind == 'video') {
+        RTCRtpParameters videoParameters =WebRtcConnection.instance.sender!.parameters;
+        videoParameters.encodings = [
+          RTCRtpEncoding(
+            rid: 'h',
+            active: true,
+            maxBitrate: 10000000,
+            minBitrate: 1000000,
+            maxFramerate: 30,
+          ),
+        ];
+
+        await WebRtcConnection.instance.sender!.setParameters(videoParameters);
+      }
     }
 
     print("Stream added to peer connection, creating and sending new offer");
@@ -418,6 +435,10 @@ class _HomePageDeviceConnectedState extends State<HomePageDeviceConnected> {
   }
 
   Future<void> _stopScreenShare() async { //TODO: proc obcas freezne
+    if (WebRtcConnection.instance.sender != null) {
+      WebRtcConnection.instance.peerConnection.removeTrack(WebRtcConnection.instance.sender!);
+    }
+
     print("Stopping screen share");
     try {
       final tracks = WebRtcConnection.instance.localStream.getTracks();
