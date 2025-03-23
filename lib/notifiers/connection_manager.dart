@@ -24,6 +24,10 @@ class ConnectionManager extends ChangeNotifier {
     if (disconnectInitiator) {
       await WebRtcConnection.instance.sendDisconnectRequest();
     }
+    if (isScreenSharing) {
+      WebRtcConnection.instance.onScreenShareStopLocal;
+      setIsScreenSharing(false);
+    }
     await WebRtcConnection.instance.closeConnection();
   }
 
