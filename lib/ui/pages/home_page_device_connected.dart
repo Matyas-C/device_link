@@ -436,7 +436,7 @@ class _HomePageDeviceConnectedState extends State<HomePageDeviceConnected> {
 
   Future<void> _stopScreenShare() async {
     if (WebRtcConnection.instance.sender != null) {
-      WebRtcConnection.instance.peerConnection.removeTrack(WebRtcConnection.instance.sender!);
+      await WebRtcConnection.instance.peerConnection.removeTrack(WebRtcConnection.instance.sender!);
     }
 
     print("Stopping screen share");
@@ -446,7 +446,7 @@ class _HomePageDeviceConnectedState extends State<HomePageDeviceConnected> {
         for (final track in tracks) {
           try {
             print("Stopping track: ${track.kind}");
-            track.stop();
+            await track.stop();
             print("Stopped track: ${track.kind}");
           } catch (e) {
             print('Error stopping track: $e');
