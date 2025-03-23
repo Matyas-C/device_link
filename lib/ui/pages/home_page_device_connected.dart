@@ -434,7 +434,7 @@ class _HomePageDeviceConnectedState extends State<HomePageDeviceConnected> {
     _connectionManager.startScreenShareCooldown();
   }
 
-  Future<void> _stopScreenShare() async { //TODO: proc obcas freezne
+  Future<void> _stopScreenShare() async {
     if (WebRtcConnection.instance.sender != null) {
       WebRtcConnection.instance.peerConnection.removeTrack(WebRtcConnection.instance.sender!);
     }
