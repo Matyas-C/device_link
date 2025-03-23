@@ -1,7 +1,7 @@
 import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:flutter_foreground_task/flutter_foreground_task.dart';
-import 'package:permission_handler/permission_handler.dart';
+import 'package:hive_ce_flutter/hive_flutter.dart';
 import 'util/window_util.dart';
 import 'database/database.dart';
 import 'udp_discovery/udp_discovery.dart';
@@ -10,6 +10,7 @@ import 'package:connectivity_plus/connectivity_plus.dart';
 import 'package:device_link/notifiers/network_connectivity_status.dart';
 import 'package:provider/provider.dart';
 import 'package:device_link/foreground_task/foreground_task_notification.dart';
+import 'package:device_link/services/screen_capture_intent_service.dart';
 
 //TODO: otestovat na linuxu
 void main() async {
@@ -17,7 +18,7 @@ void main() async {
 
   await initDatabase();
   final settingsBox = SettingsBox();
-  settingsBox.initData();
+  await settingsBox.initData();
 
   final udpDiscovery = UdpDiscovery();
 
@@ -34,6 +35,30 @@ void main() async {
   } else {
     isNetworkConnected = false;
   }
+
+ /*
+  * Po prvnim spusteni na androidu je potreba zavolat createScreenCaptureIntent() jeste pred spustenim foreground servicu
+  * (Jinak to hodi SecurityException)
+  * Potom uz ne a funguje to rovnou...
+  * Kdo vi proc to tak funguje
+  */
+
+  if (Platform.isAndroid) {
+    print("creating temporary box");
+    Box tempBox = await Hive.openBox('settings');
+    bool screenCapIntentGranted = tempBox.get('screen_capture_intent_granted', defaultValue: false);
+
+    if (!screenCapIntentGranted) {
+      bool screenCapResult = await ScreenCaptureService.requestScreenCapture();
+      if (screenCapResult) {
+        print("Screen capture permission granted");
+        tempBox.put('screen_capture_intent_granted', true);
+      } else {
+        print("Screen capture permission denied");
+      }
+    }
+  }
+
 
   final ForegroundTaskNotification foregroundTask = ForegroundTaskNotification();
   if (Platform.isAndroid || Platform.isIOS) {
