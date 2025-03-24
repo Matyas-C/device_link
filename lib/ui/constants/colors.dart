@@ -13,3 +13,4 @@ const Color borderColor = Color(0xFF989AA8);
 const Color pastelRed = Color(0xFFF8533D);
 const Color pastelGreen = Color(0xFF52F664);
 const Color mainTextColor = Color(0xFFE9E9F6);
+const Color darkerTextColor = Color(0xFFB1B1B1);

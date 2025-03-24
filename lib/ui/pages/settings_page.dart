@@ -1,5 +1,7 @@
 import 'dart:io';
+import 'package:device_link/notifiers/folder_manager.dart';
 import 'package:device_link/ui/constants/colors.dart';
+import 'package:device_link/ui/dialog/change_folder_warning_dialog.dart';
 import 'package:device_link/ui/pages/common_widgets/common_scroll_page.dart';
 import 'package:device_link/ui/pages/common_widgets/raised_container.dart';
 import 'package:flutter/material.dart';
@@ -19,6 +21,7 @@ class _SettingsPageState extends State<SettingsPage> {
   late String _defaultFilePath;
   late bool _autoSendClipboard;
   late bool _autoReconnect;
+  late FolderManager _folderManager;
 
   @override
   void initState() {
@@ -26,7 +29,12 @@ class _SettingsPageState extends State<SettingsPage> {
     _defaultFilePath = _settingsBox.get('default_file_path');
     _autoSendClipboard = _settingsBox.get('auto_send_clipboard');
     _autoReconnect = _settingsBox.get('auto_reconnect');
+    _folderManager = FolderManager(
+        settingsBox: _settingsBox,
+        defaultFilePath: _defaultFilePath
+    );
   }
+
 
   @override
   Widget build(BuildContext context) {
@@ -39,13 +47,15 @@ class _SettingsPageState extends State<SettingsPage> {
           const SizedBox(height: 20),
           InkWell(
             onTap: () async {
-              String? path = await FilePicker.platform.getDirectoryPath();
-              if (path != null) {
-                _settingsBox.put('default_file_path', path);
-                setState(() {
-                  _defaultFilePath = path;
-                });
-              }
+              showDialog(
+                  context: context,
+                  builder: (BuildContext context) {
+                    return ChangeFolderWarningDialog(
+                        settingsBox: _settingsBox,
+                        folderManager: _folderManager
+                    );
+                  }
+              );
             },
             borderRadius: BorderRadius.circular(8),
             child: RaisedContainer(
@@ -54,9 +64,21 @@ class _SettingsPageState extends State<SettingsPage> {
                 child: Column(
                   children: [
                     const Text('Výchozí složka pro ukládání souborů:', style: TextStyle(fontSize: 16)),
-                    Text(_defaultFilePath, style: TextStyle(fontSize: 12, color: Colors.grey.shade600)),
+                    ListenableBuilder(
+                        listenable: _folderManager,
+                        builder: (BuildContext context, Widget? child) {
+                          return Text(
+                              _folderManager.defaultFilePath,
+                              style: TextStyle(
+                                  fontSize: 12,
+                                  color: Colors.grey.shade600,
+                                  fontFamily: 'GeistMono'
+                              )
+                          );
+                        }
+                    ),
                     const SizedBox(height: 10),
-                    const Text('Vybrat složku', style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold)), //TODO: pridat varovani
+                    const Text('Vybrat složku', style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold)),
                   ],
                 ),
               ),
