@@ -1,3 +1,4 @@
+import 'package:device_link/util/system_ui_style_setter.dart';
 import 'package:flutter/material.dart';
 import 'package:device_link/ui/dialog/empty_loading_dialog.dart';
 import 'package:device_link/ui/constants/colors.dart';
@@ -18,12 +19,16 @@ class ResponseDialog extends StatelessWidget {
 
   static void closeDialog() {
     if (navigatorKey.currentContext != null) {
+      SystemUiStyleSetter.setNormalColor();
+
       Navigator.pop(navigatorKey.currentContext!);
     }
   }
 
   @override
   Widget build(BuildContext context) {
+    SystemUiStyleSetter.setDialogColor();
+
     return Dialog.fullscreen(
       key: navigatorKey,
       backgroundColor: secondaryColor,

@@ -332,6 +332,9 @@ class _ScreenSelectDialogState extends State<ScreenSelectDialog> {
                                         child: OverflowBar(
                                           children: <Widget>[
                                             MaterialButton(
+                                              shape: RoundedRectangleBorder(
+                                                borderRadius: BorderRadius.circular(8),
+                                              ),
                                               child: const Text(
                                                 'Zrušit',
                                                 style: TextStyle(color: mainTextColor),
@@ -343,6 +346,9 @@ class _ScreenSelectDialogState extends State<ScreenSelectDialog> {
                                               child: Opacity(
                                                 opacity: _selected_source == null ? 0.5 : 1,
                                                 child: MaterialButton(
+                                                  shape: RoundedRectangleBorder(
+                                                      borderRadius: BorderRadius.circular(8),
+                                                  ),
                                                   color: tertiaryColor,
                                                   child: const Text(
                                                     'Sdílet',

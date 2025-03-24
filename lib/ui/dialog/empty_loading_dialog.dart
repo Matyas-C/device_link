@@ -1,3 +1,4 @@
+import 'package:device_link/util/system_ui_style_setter.dart';
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'package:loading_animation_widget/loading_animation_widget.dart';
@@ -12,6 +13,7 @@ class EmptyLoadingDialog extends StatefulWidget {
 
   static void closeDialog(BuildContext context) {
     if (Navigator.of(context, rootNavigator: true).canPop()) {
+      SystemUiStyleSetter.setNormalColor();
       isDialogOpen = false;
       Navigator.of(context, rootNavigator: true).pop();
       context.go('/home');
@@ -19,6 +21,7 @@ class EmptyLoadingDialog extends StatefulWidget {
   }
 
   static Future<void> show(BuildContext context) {
+    SystemUiStyleSetter.setDialogColor();
     isDialogOpen = true;
     return showDialog(
       context: context,

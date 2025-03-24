@@ -314,7 +314,9 @@ class WebRtcConnection {
           if (_fileIndex >= _fileCount - 1) {
             GlobalOverlayManager().removeProgressBar();
           }
-          MediaScanner.loadMedia(path: _selectedFile.path);
+          if (Platform.isAndroid) {
+            MediaScanner.loadMedia(path: _selectedFile.path);
+          }
         }
       };
     };

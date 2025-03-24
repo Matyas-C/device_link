@@ -1,5 +1,7 @@
 import 'package:device_link/udp_discovery/udp_discovery.dart';
+import 'package:device_link/util/system_ui_style_setter.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:loading_animation_widget/loading_animation_widget.dart';
 import 'package:device_link/ui/dialog/empty_loading_dialog.dart';
 import 'package:device_link/ui/constants/colors.dart';
@@ -18,6 +20,8 @@ class ConnectingDialog extends StatelessWidget {
     if (navigatorKey.currentContext != null) {
       Navigator.pop(navigatorKey.currentContext!);
 
+      SystemUiStyleSetter.setNormalColor();
+
       if (!cancelled) {
         EmptyLoadingDialog.show(navigatorKey.currentContext!);
       }
@@ -26,6 +30,8 @@ class ConnectingDialog extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    SystemUiStyleSetter.setDialogColor();
+
     return Dialog.fullscreen(
       key: navigatorKey,
       backgroundColor: secondaryColor,
@@ -54,6 +60,7 @@ class ConnectingDialog extends StatelessWidget {
               onPressed: () {
                 Navigator.pop(context);
                 UdpDiscovery().sendCancelRequest(deviceIp);
+                SystemUiStyleSetter.setNormalColor();
               },
               child: const Text(
                 "Zrušit",

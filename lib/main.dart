@@ -13,6 +13,8 @@ import 'package:device_link/foreground_task/foreground_task_notification.dart';
 import 'package:device_link/services/screen_capture_intent_service.dart';
 
 //TODO: otestovat na linuxu
+//TODO: overridnout back button
+//TODO: pridat systemchrome
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
 
@@ -29,7 +31,7 @@ void main() async {
   bool isNetworkConnected;
   final List<ConnectivityResult> conResult = await (Connectivity().checkConnectivity());
   if (conResult.contains(ConnectivityResult.wifi) || conResult.contains(ConnectivityResult.ethernet)) {
-    await udpDiscovery.initialize(); //TODO: opravit release
+    await udpDiscovery.initialize();
     udpDiscovery.sendDiscoveryBroadcastBatch(30);
     isNetworkConnected = true;
   } else {
@@ -98,6 +100,7 @@ class PhoneConnect extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return MaterialApp.router(
+      debugShowCheckedModeBanner: false,
       title: 'DeviceLink',
       darkTheme: ThemeData(
         fontFamily: 'Geist',

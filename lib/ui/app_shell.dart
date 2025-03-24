@@ -1,8 +1,11 @@
 import 'package:device_link/ui/other/fade_out.dart';
+import 'package:device_link/util/system_ui_style_setter.dart';
 import 'package:flutter/material.dart';
 import 'package:device_link/ui/navigation/navigation_rail.dart';
 import 'package:device_link/ui/navigation/navigation_bar.dart';
 import 'package:device_link/ui/constants/colors.dart';
+import 'package:flutter/services.dart';
+import 'package:flutter_foreground_task/flutter_foreground_task.dart';
 
 class AppShell extends StatelessWidget {
   final Widget child;
@@ -22,9 +25,16 @@ class AppShell extends StatelessWidget {
   Widget build(BuildContext context) {
     final bool isWideScreen = MediaQuery.of(context).size.width > 700;
 
-    return Scaffold(
-      body: isWideScreen ? _buildWideScreenLayout() : _buildNarrowScreenLayout(),
-      bottomNavigationBar: isWideScreen ? null : NavBar(selectedIndex: currentIndex),
+    SystemUiStyleSetter.setNormalMode();
+    SystemChrome.setSystemUIOverlayStyle(const SystemUiOverlayStyle(
+      systemNavigationBarDividerColor: Colors.transparent,
+    ));
+
+    return WithForegroundTask(
+      child: Scaffold(
+        body: isWideScreen ? _buildWideScreenLayout() : _buildNarrowScreenLayout(),
+        bottomNavigationBar: isWideScreen ? null : NavBar(selectedIndex: currentIndex),
+      ),
     );
   }
 

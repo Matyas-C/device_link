@@ -1,7 +1,10 @@
 import 'package:device_link/ui/constants/colors.dart';
 import 'package:device_link/ui/pages/common_widgets/raised_container.dart';
+import 'package:device_link/util/system_ui_style_setter.dart';
 import 'package:device_link/web_rtc/webrtc_connection.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
+import 'package:flutter_foreground_task/flutter_foreground_task.dart';
 import 'package:flutter_webrtc/flutter_webrtc.dart';
 import 'package:go_router/go_router.dart';
 import 'package:fluentui_system_icons/fluentui_system_icons.dart';
@@ -26,6 +29,7 @@ class _ScreenSharePageState extends State<ScreenSharePage> with SingleTickerProv
   void initState() {
     super.initState();
     _initializeRenderer();
+    SystemUiStyleSetter.setFullScreenMode();
 
     _fadeController = AnimationController(
       vsync: this,
@@ -63,6 +67,7 @@ class _ScreenSharePageState extends State<ScreenSharePage> with SingleTickerProv
   void dispose() {
     _renderer?.dispose();
     _fadeController.dispose();
+    SystemUiStyleSetter.setNormalMode();
     super.dispose();
   }
 
@@ -86,37 +91,39 @@ class _ScreenSharePageState extends State<ScreenSharePage> with SingleTickerProv
       }
     };
 
-    return Scaffold(
-      backgroundColor: backgroundColor,
-      body: SafeArea(
-        child: Stack(
-          children: [
-            Positioned.fill(
-              child: _buildMainContent(),
-            ),
-            Positioned(
-              top: 16,
-              left: 16,
-              child: FadeTransition(
-                opacity: _fadeAnimation,
-                child: Container(
-                  decoration: const BoxDecoration(
-                    color: primaryColor,
-                    shape: BoxShape.circle,
-                  ),
-                  child: IconButton(
-                    icon: const Icon(FluentIcons.arrow_previous_16_filled, color: Colors.white),
-                    onPressed: () {
-                      _stopScreenShare();
-                      WebRtcConnection.instance.sendScreenShareStopMessage(isSource: false);
-                      context.go('/home');
-                    },
-                    tooltip: 'Zpět na domovskou obrazovku\n(Vypne sdílení obrazovky)',
+    return WithForegroundTask(
+      child: Scaffold(
+        backgroundColor: Colors.black,
+        body: SafeArea(
+          child: Stack(
+            children: [
+              Positioned.fill(
+                child: _buildMainContent(),
+              ),
+              Positioned(
+                top: 16,
+                left: 16,
+                child: FadeTransition(
+                  opacity: _fadeAnimation,
+                  child: Container(
+                    decoration: const BoxDecoration(
+                      color: primaryColor,
+                      shape: BoxShape.circle,
+                    ),
+                    child: IconButton(
+                      icon: const Icon(FluentIcons.arrow_previous_16_filled, color: Colors.white),
+                      onPressed: () {
+                        _stopScreenShare();
+                        WebRtcConnection.instance.sendScreenShareStopMessage(isSource: false);
+                        context.go('/home');
+                      },
+                      tooltip: 'Zpět na domovskou obrazovku\n(Vypne sdílení obrazovky)',
+                    ),
                   ),
                 ),
               ),
-            ),
-          ],
+            ],
+          ),
         ),
       ),
     );
