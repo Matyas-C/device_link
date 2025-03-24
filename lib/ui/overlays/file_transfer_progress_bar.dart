@@ -1,8 +1,8 @@
 import 'dart:ui';
 import 'package:device_link/ui/constants/colors.dart';
+import 'package:device_link/web_rtc/webrtc_connection.dart';
 import 'package:flutter/material.dart';
 import 'package:device_link/notifiers/file_transfer_progress_model.dart';
-import 'package:device_link/ui/overlays/overlay_manager.dart';
 
 class FileTransferProgressBar extends StatefulWidget {
 
@@ -15,7 +15,7 @@ class FileTransferProgressBar extends StatefulWidget {
 }
 
 class _FileTransferProgressBarState extends State<FileTransferProgressBar> {
-  final FileTransferProgressModel fileTransferProgressModel = GlobalOverlayManager().fileTransferProgressModel;
+  final FileTransferProgressModel fileTransferProgressModel = WebRtcConnection.instance.progressBarModel;
 
   @override
   Widget build(BuildContext context) {

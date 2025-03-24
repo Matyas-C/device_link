@@ -17,7 +17,6 @@ import 'package:media_scanner/media_scanner.dart';
 import 'connected_device.dart';
 import 'package:file_picker/file_picker.dart';
 import 'dart:typed_data';
-import 'package:device_link/ui/overlays/overlay_manager.dart';
 import 'package:device_link/notifiers/file_transfer_progress_model.dart';
 import 'package:device_link/notifiers/clipboard_manager.dart';
 import 'package:device_link/ui/router.dart';
@@ -58,10 +57,10 @@ class WebRtcConnection {
   Function(bool) onConnectionStateChange = (bool isActive) {};
   Function() onScreenShareStopLocal = () {};
   Function() onScreenShareStopRemote = () {};
+  final FileTransferProgressModel _progressBarModel = FileTransferProgressModel();
   final ClipboardManager _clipboardManager = ClipboardManager();
   final ConnectionManager _connectionManager = ConnectionManager();
   final BatteryManager _batteryManager = BatteryManager();
-  final  FileTransferProgressModel _progressBarModel = GlobalOverlayManager().fileTransferProgressModel;
   Completer<void> _connectionCompleter = Completer<void>();
   Completer<void> _canSendChunk = Completer<void>();
   Completer<void> _sdpCompleter = Completer<void>();
@@ -76,6 +75,7 @@ class WebRtcConnection {
   RTCPeerConnection get peerConnection => _peerConnection;
   MediaStream get remoteStream => _remoteStream;
   Completer<void> get sdpCompleter => _sdpCompleter;
+  FileTransferProgressModel get progressBarModel => _progressBarModel;
 
   Future<void> initialize() async {
     if (!EmptyLoadingDialog.isShowing() && navigatorKey.currentContext != null) {
@@ -312,7 +312,7 @@ class WebRtcConnection {
           receivedBytes = 0;
           await _infoDataChannel.send(RTCDataChannelMessage(fileOkMessage));
           if (_fileIndex >= _fileCount - 1) {
-            GlobalOverlayManager().removeProgressBar();
+            _progressBarModel.hide();
           }
           if (Platform.isAndroid) {
             MediaScanner.loadMedia(path: _selectedFile.path);
@@ -570,7 +570,7 @@ class WebRtcConnection {
       _canSendChunk.complete();
     }
 
-    GlobalOverlayManager().showProgressBar();
+    _progressBarModel.show();
     await _progressBarModel.setFileInfo(
       filename: fileName,
       fileIndex: fileIndex,
@@ -609,7 +609,7 @@ class WebRtcConnection {
 
     _fileInfoReceived = Completer<void>();
     _canSendChunk = Completer<void>();
-    GlobalOverlayManager().removeProgressBar();
+    _progressBarModel.hide();
     print('File sent, completers reset');
   }
 
@@ -647,7 +647,7 @@ class WebRtcConnection {
 
     await _infoDataChannel.send(RTCDataChannelMessage(json.encode(fileOkMap)));
 
-    GlobalOverlayManager().showProgressBar();
+    _progressBarModel.show();
     await _progressBarModel.setFileInfo(
       filename: _fileName,
       fileIndex: _fileIndex,

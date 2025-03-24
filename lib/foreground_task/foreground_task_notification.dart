@@ -62,9 +62,6 @@ class ForegroundTaskNotification {
         notificationIcon: const NotificationIcon(
           metaDataName: 'com.device_link.service.NOTIFICATION_ICON_SERVICE_DEVICE_LINK',
         ),
-        notificationButtons: [
-          const NotificationButton(id: 'clipboard_send', text: 'Poslat schránku'), //zatim nic nedela TODO: implementovat (nejdriv je potreba aktualizovat notifikaci)
-        ],
         notificationInitialRoute: '/',
         callback: startTaskHandlerCallback,
       );

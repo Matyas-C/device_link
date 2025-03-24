@@ -1,12 +1,17 @@
 import 'dart:io';
 
-//TODO: prepsat na enum
+enum DeviceType {
+  computer,
+  phone,
+  unknown
+}
+
 String determineDeviceType() {
-  if (Platform.isWindows || Platform.isLinux || Platform.isMacOS) {
-    return 'computer';
-  } else if (Platform.isAndroid || Platform.isIOS) {
-    return 'phone';
+  if (Platform.isAndroid || Platform.isIOS) {
+    return DeviceType.phone.name;
+  } else if (Platform.isMacOS || Platform.isWindows || Platform.isLinux) {
+    return DeviceType.computer.name;
   } else {
-    return 'unknown';
+    return DeviceType.unknown.name;
   }
 }

@@ -12,7 +12,6 @@ import 'package:device_link/ui/dialog/disconnect_dialog.dart';
 import 'package:device_link/notifiers/connection_manager.dart';
 import 'package:device_link/web_rtc/webrtc_connection.dart';
 import 'package:device_link/ui/overlays/file_transfer_progress_bar.dart';
-import 'package:device_link/ui/overlays/overlay_manager.dart';
 import 'package:device_link/notifiers/file_transfer_progress_model.dart';
 import 'package:device_link/ui/constants/colors.dart';
 import 'package:device_link/notifiers/battery_manager.dart';
@@ -52,7 +51,7 @@ class _HomePageDeviceConnectedState extends State<HomePageDeviceConnected> {
 
   @override
   Widget build(BuildContext context) {
-    final FileTransferProgressModel fileTransferProgressModel = GlobalOverlayManager().fileTransferProgressModel;
+    final FileTransferProgressModel fileTransferProgressModel = WebRtcConnection.instance.progressBarModel;
     WebRtcConnection.instance.onScreenShareStopLocal = () {
       _connectionManager.setIsScreenSharing(false);
       _stopScreenShare();

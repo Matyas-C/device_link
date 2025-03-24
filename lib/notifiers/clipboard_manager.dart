@@ -87,7 +87,7 @@ class ClipboardManager with ClipboardListener {
       default:
         return;
     }
-    //TODO: proc super_clipboard haze java error kdyz jsou data nad cca 64KiB?
+
     await clipboard.write([item]);
   }
 
