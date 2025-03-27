@@ -75,6 +75,7 @@ class SignalingClient {
           decodedMessage['candidate']['sdpMid'],
           decodedMessage['candidate']['sdpMLineIndex'],
         );
+        print('Received ICE candidate: ${candidate.candidate}');
         await _webRtcConnection.addCandidate(candidate);
         break;
     }

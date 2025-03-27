@@ -59,7 +59,7 @@ class UdpDiscovery {
   void _startDatabaseListener() async {
     final autoReconnectListener = _settingsBox.listenable(keys: ['auto_reconnect']);
     autoReconnectListener.addListener(() {
-      _autoReconnect = _settingsBox.get('auto_send_clipboard');
+      _autoReconnect = _settingsBox.get('auto_reconnect');
     });
   }
 
@@ -121,15 +121,11 @@ class UdpDiscovery {
     required String messageUuid,
     required String lastDeviceUuid,
     required bool autoReconnect,
-    required bool wasConnected
+    required bool wasConnected,
   }) {
-    if (wasConnected == true || autoReconnect == false) return false;
-    if (messageUuid == lastDeviceUuid) {
-      return true;
-    } else {
-      return false;
-    }
+    return !wasConnected && autoReconnect && messageUuid == lastDeviceUuid;
   }
+
 
   Future<void> startListener(RawDatagramSocket socket) async {
     socket.listen((RawSocketEvent event) async {

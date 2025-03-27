@@ -25,9 +25,14 @@ class AppShell extends StatelessWidget {
   Widget build(BuildContext context) {
     final bool isWideScreen = MediaQuery.of(context).size.width > 700;
 
-    SystemUiStyleSetter.setNormalMode();
-    SystemChrome.setSystemUIOverlayStyle(const SystemUiOverlayStyle(
-      systemNavigationBarDividerColor: Colors.transparent,
+    SystemChrome.setSystemUIOverlayStyle(SystemUiOverlayStyle(
+      systemNavigationBarColor: raisedColor,
+      statusBarColor: backgroundColor.withOpacity(0.2),
+    ));
+    SystemChrome.setEnabledSystemUIMode(SystemUiMode.edgeToEdge);
+    SystemChrome.setSystemUIOverlayStyle(SystemUiOverlayStyle(
+      systemNavigationBarColor: raisedColor,
+      statusBarColor: backgroundColor.withOpacity(0.2),
     ));
 
     return WithForegroundTask(

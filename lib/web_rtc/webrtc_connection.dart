@@ -408,11 +408,13 @@ class WebRtcConnection {
   }
 
   Future<void> startIceExchange() async {
+    print("Starting ICE exchange");
     _peerConnection.onIceCandidate = (candidate) {
       final Map<String, dynamic> iceCandidate = {
         'type': SignalingMessageType.iceCandidate.name,
         'candidate': candidate.toMap(),
       };
+      print(candidate.candidate);
       _signalingClient.sendMessage(json.encode(iceCandidate));
     };
   }

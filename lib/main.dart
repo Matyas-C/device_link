@@ -13,8 +13,6 @@ import 'package:device_link/foreground_task/foreground_task_notification.dart';
 import 'package:device_link/services/screen_capture_intent_service.dart';
 
 //TODO: otestovat na linuxu
-//TODO: overridnout back button
-//TODO: pridat systemchrome
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
 

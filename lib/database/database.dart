@@ -28,8 +28,5 @@ class SettingsBox {
     if (!_settingsBox.containsKey('auto_reconnect')) {
       _settingsBox.put('auto_reconnect', false);
     }
-    if (!_settingsBox.containsKey('screen_capture_intent_granted')) {
-      _settingsBox.put('creen_capture_intent_granted', false);
-    }
   }
 }
