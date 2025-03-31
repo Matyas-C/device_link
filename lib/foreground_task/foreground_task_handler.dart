@@ -13,7 +13,7 @@ class ForegroundTaskHandler extends TaskHandler {
   }
 
   @override
-  void onNotificationButtonPressed(String id) {
+  void onNotificationButtonPressed(String id) async {
     print('onNotificationButtonPressed: $id');
   }
 
@@ -23,7 +23,7 @@ class ForegroundTaskHandler extends TaskHandler {
   }
 
   @override
-  Future<void> onDestroy(DateTime timestamp) {
+  Future<void> onDestroy(DateTime timestamp) async {
     // TODO: implement onDestroy
     throw UnimplementedError();
   }
