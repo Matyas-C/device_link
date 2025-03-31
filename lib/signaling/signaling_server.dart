@@ -45,7 +45,7 @@ class SignalingServer {
 
   Future<bool> get isServerReady async => _serverReady.isCompleted;
 
-  void _handleWebSocket(WebSocket socket) {
+  void _handleWebSocket(WebSocket socket) async {
     _connectedClients.add(socket);
     print('Client connected to server');
 
@@ -63,7 +63,7 @@ class SignalingServer {
     });
   }
 
-  void _broadcastMessage(WebSocket sender, String message) {
+  void _broadcastMessage(WebSocket sender, String message) async {
     for (var client in _connectedClients) {
       if (client != sender) {
         client.add(message);

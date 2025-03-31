@@ -291,10 +291,6 @@ class WebRtcConnection {
       bool fileTransferInProgress = false;
 
       _fileDataChannel.onMessage = (RTCDataChannelMessage message) async {
-        if (!fileTransferInProgress) {
-          fileStopwatch.start();
-          fileTransferInProgress = true;
-        }
         _selectedFileSink.add(message.binary);
         await _selectedFileSink.flush();
         receivedBytes += message.binary.length;
@@ -303,7 +299,6 @@ class WebRtcConnection {
         if (receivedBytes >= _fileSize) {
           await _selectedFileSink.close();
           print("File $_fileName received and saved.");
-          print("Transfer time: ${fileStopwatch.elapsed}");
           double transferSpeed = (_fileSize / fileStopwatch.elapsedMilliseconds) * 1000 / 1000000;
           fileStopwatch.stop();
           fileStopwatch.reset();
@@ -611,7 +606,9 @@ class WebRtcConnection {
 
     _fileInfoReceived = Completer<void>();
     _canSendChunk = Completer<void>();
-    _progressBarModel.hide();
+    if (fileIndex >= fileCount - 1) {
+      _progressBarModel.hide();
+    }
     print('File sent, completers reset');
   }
 

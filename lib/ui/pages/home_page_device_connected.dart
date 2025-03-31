@@ -367,7 +367,7 @@ class _HomePageDeviceConnectedState extends State<HomePageDeviceConnected> {
     if (WebRTC.platformIsDesktop) {
       source = await showDialog<DesktopCapturerSource>(
         context: context,
-        builder: (context) => ScreenSelectDialog(),
+        builder: (context) => const ScreenSelectDialog(),
       );
       if (source == null) {
         return;

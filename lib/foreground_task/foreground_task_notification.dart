@@ -27,7 +27,7 @@ class ForegroundTaskNotification {
     }
   }
 
-  Future<void> initService() async{
+  Future<void> initService() async {
     await _requestPermissions();
     FlutterForegroundTask.init(
       androidNotificationOptions: AndroidNotificationOptions(

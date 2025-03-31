@@ -66,12 +66,12 @@ class ClipboardManager with ClipboardListener {
     return null;
   }
 
-  Future<void> setClipboardData(Map dataAnnotated) async {
+  Future<void> setClipboardData(Map dataMessage) async {
     final clipboard = SystemClipboard.instance;
     if (clipboard == null) return;
 
-    final Uint8List data = Uint8List.fromList((dataAnnotated['data'] as List).cast<int>());
-    final ClipboardMessageType type = ClipboardMessageType.values.byName(dataAnnotated['type']);
+    final Uint8List data = Uint8List.fromList((dataMessage['data'] as List).cast<int>());
+    final ClipboardMessageType type = ClipboardMessageType.values.byName(dataMessage['type']);
     print('Setting clipboard data: $type');
     final item = DataWriterItem(suggestedName: 'clipboardItem');
 
@@ -82,7 +82,7 @@ class ClipboardManager with ClipboardListener {
         break;
       case ClipboardMessageType.clipboardText:
         item.add(Formats.plainText(utf8.decode(data)));
-        print('Text added to clipboard');;
+        print('Text added to clipboard');
         break;
       default:
         return;

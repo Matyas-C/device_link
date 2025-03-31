@@ -18,7 +18,7 @@ class ForegroundTaskHandler extends TaskHandler {
   }
 
   @override
-  void onRepeatEvent(DateTime timestamp) {
+  void onRepeatEvent(DateTime timestamp) async {
     // TODO: implement onRepeatEvent
   }
 
